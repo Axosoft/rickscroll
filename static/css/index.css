@@ -1,0 +1,23 @@
+html, body, #scrollable {
+  margin: 0px;
+  padding: 0px;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.scrollable {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.scrollable .contents {
+  width: 100%;
+}
+
+.scrollable .scrollbar {
+  overflow-y: scroll;
+  width: 20px;
+}

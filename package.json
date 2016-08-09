@@ -16,6 +16,7 @@
     "babel-preset-react": "^6.5.0",
     "css-loader": "^0.23.1",
     "html-webpack-plugin": "^2.21.0",
+    "lodash": "^4.14.2",
     "react": "^15.1.0",
     "react-dom": "^15.1.0",
     "redux": "^3.5.2",
