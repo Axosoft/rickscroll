@@ -9,32 +9,54 @@ class Scrollable extends React.Component {
     this._onMouseWheel = this._onMouseWheel.bind(this);
     this._onScroll = this._onScroll.bind(this);
     this.state = {
+      topIndex: 0,
       transform: 0
     };
   }
 
-
   _onScroll() {
-    const { scrollbar } = this.refs;
-    this.setState({ transform: scrollbar.scrollTop });
+    const {
+      refs: {
+        scrollbar: { scrollTop: transform }
+      },
+      props: { rowHeight }
+    } = this;
+    const topIndex = _.floor(transform / rowHeight);
+    this.setState({ topIndex, transform });
   }
 
-  _onMouseWheel(event) {
-    const { transform } = this.state;
-    this.setState({ transform: event.deltaY + transform });
+  _onMouseWheel({ deltaY }) {
+    const {
+      refs: { scrollbar },
+      props: { rowHeight, rows }
+    } = this;
+    const maxHeight = (rowHeight * rows.length) - scrollbar.offsetHeight;
+
+    let { transform } = this.state;
+    transform += deltaY;
+    transform = _.clamp(transform, 0, maxHeight);
+
+    const topIndex = _.floor(transform / rowHeight);
+    this.setState({ topIndex, transform }, () => { scrollbar.scrollTop = transform });
   }
 
   render() {
     const { rowHeight, rows } = this.props;
-    const { transform } = this.state;
+    const { topIndex, transform } = this.state;
+    const offset = transform % rowHeight;
 
     const scrollbarHeightStyle = { height: `${rowHeight * rows.length}px` };
-    const translateStyle = { transform: `translate3d(-0px, -${transform}px, 0px)` };
+    const translateStyle = { transform: `translate3d(-0px, -${offset}px, 0px)` };
+
+    const showRows = _(rows)
+      .slice(topIndex, topIndex + 100)
+      .map((row, index) => (<div key={index} style={translateStyle}>{row()}</div>))
+      .value();
 
     return (
-      <div className='scrollable'>
+      <div className='scrollable' ref='scrollable'>
         <div className='contents' onWheel={this._onMouseWheel}>
-          {rows.map((row, index) => (<div key={index} style={translateStyle}>{row}</div>))}
+          {showRows}
         </div>
         <div className='scrollbar' onScroll={this._onScroll} ref='scrollbar'>
           <div style={scrollbarHeightStyle} />
