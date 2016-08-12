@@ -3,6 +3,39 @@ const _ = require('lodash');
 
 const { PropTypes: types } = React;
 
+const helpers = {
+  buildGutter({ component: ComponentClass, width: minWidth } = {}) {
+    const widthStyle = minWidth ? { minWidth } : undefined;
+    return ComponentClass ?
+      <span className='scrollable__gutter' style={widthStyle}><ComponentClass /></span> :
+      undefined;
+  },
+
+  getMaxHeight(rowHeight, numRows, offsetHeight) {
+    return (rowHeight * numRows) - offsetHeight;
+  },
+
+  getScrollValues(preClampTransform, rowHeight, maxHeight) {
+    const transform = _.clamp(preClampTransform, 0, maxHeight);
+    const topIndex = _.floor(transform / rowHeight);
+    return { topIndex, transform };
+  },
+
+  getRenderableRow(translateStyle) {
+    return ({ contentComponent: ContentComponent, gutters = {} }, index) => {
+      const leftComponent = helpers.buildGutter(gutters.left);
+      const rightComponent = helpers.buildGutter(gutters.right);
+      return (
+        <div className='scrollable__row' key={index} style={translateStyle}>
+          {leftComponent}
+          <span className='scrollable__content'><ContentComponent /></span>
+          {rightComponent}
+        </div>
+      );
+    };
+  }
+};
+
 class Scrollable extends React.Component {
   constructor(props) {
     super(props);
@@ -17,12 +50,17 @@ class Scrollable extends React.Component {
   _onScroll() {
     const {
       refs: {
-        scrollbar: { scrollTop: transform }
+        scrollbar: { offsetHeight, scrollTop }
       },
-      props: { rowHeight }
+      props: {
+        rowHeight,
+        rows
+      }
     } = this;
-    const topIndex = _.floor(transform / rowHeight);
-    this.setState({ topIndex, transform });
+
+    const maxHeight = helpers.getMaxHeight(rowHeight, rows.length, offsetHeight);
+
+    this.setState(helpers.getScrollValues(scrollTop, rowHeight, maxHeight));
   }
 
   _onMouseWheel({ deltaY }) {
@@ -30,35 +68,45 @@ class Scrollable extends React.Component {
       refs: { scrollbar },
       props: { rowHeight, rows }
     } = this;
-    const maxHeight = (rowHeight * rows.length) - scrollbar.offsetHeight;
 
-    let { transform } = this.state;
-    transform += deltaY;
-    transform = _.clamp(transform, 0, maxHeight);
+    const maxHeight = helpers.getMaxHeight(rowHeight, rows.length, scrollbar.offsetHeight);
+    const transform = this.state.transform + deltaY;
 
-    const topIndex = _.floor(transform / rowHeight);
-    this.setState({ topIndex, transform }, () => { scrollbar.scrollTop = transform });
+    this.setState(
+      helpers.getScrollValues(transform, rowHeight, maxHeight),
+      () => { scrollbar.scrollTop = transform }
+    );
   }
 
   render() {
-    const { rowHeight, rows } = this.props;
-    const { topIndex, transform } = this.state;
-    const offset = transform % rowHeight;
+    const {
+      rowHeight,
+      rows,
+    } = this.props;
+    const {
+      topIndex,
+      transform
+    } = this.state;
 
-    const scrollbarHeightStyle = { height: `${rowHeight * rows.length}px` };
-    const translateStyle = { transform: `translate3d(-0px, -${offset}px, 0px)` };
+    const offset = transform % rowHeight;
+    const scrollbarHeightStyle = {
+      height: `${rowHeight * rows.length}px`
+    };
+    const translateStyle = {
+      transform: `translate3d(-0px, -${offset}px, 0px)`,
+      height: `${rowHeight}px`
+    };
 
     const showRows = _(rows)
-      .slice(topIndex, topIndex + 100)
-      .map((row, index) => (<div key={index} style={translateStyle}>{row()}</div>))
-      .value();
+      .slice(Math.min(topIndex, rows.length), topIndex + 100)
+      .map(helpers.getRenderableRow(translateStyle)).value();
 
     return (
       <div className='scrollable' ref='scrollable'>
-        <div className='contents' onWheel={this._onMouseWheel}>
+        <div className='scrollable__contents' onWheel={this._onMouseWheel}>
           {showRows}
         </div>
-        <div className='scrollbar' onScroll={this._onScroll} ref='scrollbar'>
+        <div className='scrollable__scrollbar' onScroll={this._onScroll} ref='scrollbar'>
           <div style={scrollbarHeightStyle} />
         </div>
       </div>
@@ -68,7 +116,7 @@ class Scrollable extends React.Component {
 
 Scrollable.propTypes = {
   rowHeight: types.number.isRequired,
-  rows: types.array.isRequired
+  rows: types.array.isRequired,
 };
 
 module.exports = Scrollable;

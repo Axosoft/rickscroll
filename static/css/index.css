@@ -13,11 +13,15 @@ html, body, #scrollable {
   flex-direction: row;
 }
 
-.scrollable .contents {
+.scrollable .scrollable__contents {
   width: 100%;
 }
 
-.scrollable .scrollbar {
+.scrollable .scrollable__scrollbar {
   overflow-y: scroll;
   width: 20px;
+}
+
+.scrollable .scrollable__content, .scrollable .scrollable__gutter {
+  display: inline-block;
 }
