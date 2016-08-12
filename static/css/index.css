@@ -22,6 +22,7 @@ html, body, #scrollable {
   width: 20px;
 }
 
-.scrollable .scrollable__content, .scrollable .scrollable__gutter {
-  display: inline-block;
+.scrollable .scrollable__row {
+  display: flex;
+  flex-direction: row;
 }
