@@ -4,6 +4,8 @@ const { AnimationTimer } = require('animation-timer');
 const { Easer } = require('functional-easing');
 const _ = require('lodash');
 const { PropTypes: types } = React;
+const easer = new Easer()
+  .using('out-cubic');
 
 const constants = require('../constants');
 const helpers = require('../helpers');
@@ -81,10 +83,7 @@ class Scrollable extends React.Component {
     const { horizontalTransform, verticalTransform } = this.state;
     const delta = _.clone(scrollTo)
       .sub(new utils.Point(horizontalTransform, verticalTransform));
-
     const transition = new utils.Point(0, 0);
-    const easer = new Easer()
-      .using('out-cubic');
 
     return _.throttle(easer(elapsedTime => {
       if (!_.isEqual(scrollTo, this.state.scrollingToPosition)) {
