@@ -8,7 +8,6 @@ const easer = new Easer()
   .using('out-cubic');
 
 const constants = require('../constants');
-const helpers = require('../helpers');
 const HorizontalWrapper = require('./HorizontalWrapper');
 const utils = require('../utils');
 
@@ -127,9 +126,9 @@ class Scrollable extends React.Component {
     const withHorizontalScrolling = !!horizontalScrollConfig;
 
     // vertical
-    const maxHeight = helpers.getMaxHeight(rowHeight, rows.length, verticalScrollbar.offsetHeight);
+    const maxHeight = utils.getMaxHeight(rowHeight, rows.length, verticalScrollbar.offsetHeight);
     const verticalTransform = this.state.verticalTransform + deltaY;
-    const scrollChanges = helpers.getScrollValues(verticalTransform, rowHeight, maxHeight, offsetBuffer);
+    const scrollChanges = utils.getScrollValues(verticalTransform, rowHeight, maxHeight, offsetBuffer);
 
     // horizontal scrolling
     if (withHorizontalScrolling) {
@@ -160,9 +159,9 @@ class Scrollable extends React.Component {
       state: { offsetBuffer }
     } = this;
 
-    const maxHeight = helpers.getMaxHeight(rowHeight, rows.length, offsetHeight);
+    const maxHeight = utils.getMaxHeight(rowHeight, rows.length, offsetHeight);
 
-    this.setState(helpers.getScrollValues(scrollTop, rowHeight, maxHeight, offsetBuffer));
+    this.setState(utils.getScrollValues(scrollTop, rowHeight, maxHeight, offsetBuffer));
   }
 
   _scrollTo({ x = 0, y = 0 }) {

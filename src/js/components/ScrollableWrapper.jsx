@@ -52,18 +52,18 @@ function getMock(numRows) {
 class ScrollableWrapper extends React.Component {
   constructor(props) {
     super(props);
-    const mock = getMock(10000);
-    const contentWidth = calculateWidthOfSpan(`The content in row 9999 is very long and has an incredibly long signatur` +
+    const mock = getMock(100000);
+    const contentWidth = calculateWidthOfSpan(`The content in row 99999 is very long and has an incredibly long signatur` +
       `e that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we` +
       `'re gouing to test this, because we don't know if it will work right.`
     );
 
     const gutterConfig = {
       left: {
-        width: calculateWidthOfSpan(`9999`) + 6
+        width: calculateWidthOfSpan(`99999`) + 6
       },
       right: {
-        width: calculateWidthOfSpan('Right gutter for 9999') + 100
+        width: calculateWidthOfSpan('Right gutter for 99999') + 100
       }
     };
     const horizontalScrollConfig = {
