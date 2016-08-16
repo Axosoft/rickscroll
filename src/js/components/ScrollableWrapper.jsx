@@ -8,7 +8,7 @@ function leftGutter(x) {
 }
 
 function rightGutter(x) {
-    return () => <span className='gutter right'>| Right gutter for {x}</span>;
+    return () => <span className='gutter right'>Right gutter for {x}</span>;
 }
 
 function row(x) {
@@ -23,7 +23,8 @@ function createRow(x) {
   return {
     contentComponent: row(x),
     gutters: {
-      left: leftGutter(x)
+      left: leftGutter(x),
+      right: rightGutter(x)
     }
   };
 }
@@ -51,11 +52,13 @@ function getMock(numRows) {
 function ScrollableWrapper() {
   const mock = getMock(10000);
   const leftGutterWidth = calculateWidthOfSpan(`10000`) + 6;
+  const rightGutterWidth = calculateWidthOfSpan('Right gutter for 9999') + 6;
   const contentWidth = calculateWidthOfSpan(`The content in row 9999 is very long and has an incredibly long signature that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we're gouing to test this, because we don't know if it will work right.`);
   return (
     <Scrollable
       contentWidth={contentWidth}
       leftGutterWidth={leftGutterWidth}
+      rightGutterWidth={rightGutterWidth}
       rowHeight={20}
       rows={mock}
       withHorizontalScrolling

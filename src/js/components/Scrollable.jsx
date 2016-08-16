@@ -2,7 +2,16 @@ const React = require('react');
 const _ = require('lodash');
 const { PropTypes: types } = React;
 
+require('../../../static/css/scrollable');
+
 const HorizontalWrapper = require('./HorizontalWrapper');
+
+const constants = {
+  LEFT_GUTTER_WIDTH: 0,
+  HORIZONTAL_SCROLLBAR_HEIGHT: 15,
+  RIGHT_GUTTER_WIDTH: 0,
+  VERTICAL_SCROLLBAR_WIDTH: 15
+};
 
 const helpers = {
   buildGutter(ComponentClass, minWidth) {
@@ -77,7 +86,7 @@ class Scrollable extends React.Component {
   _onMouseWheel({ deltaX, deltaY }) {
     const {
       refs: { horizontalScrollbar, verticalScrollbar },
-      props: { rowHeight, rows, verticalScrollbarWidth = 20, withHorizontalScrolling },
+      props: { rowHeight, rows, verticalScrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH, withHorizontalScrolling },
       state: { offsetBuffer }
     } = this;
 
@@ -120,11 +129,12 @@ class Scrollable extends React.Component {
   render() {
     const {
       contentWidth,
-      horizontalScrollbarHeight = 15,
-      leftGutterWidth,
+      horizontalScrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT,
+      leftGutterWidth = constants.LEFT_GUTTER_WIDTH,
+      rightGutterWidth = constants.RIGHT_GUTTER_WIDTH,
       rowHeight,
       rows,
-      verticalScrollbarWidth = 20,
+      verticalScrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH,
       withHorizontalScrolling
     } = this.props;
     const {
@@ -155,7 +165,7 @@ class Scrollable extends React.Component {
       height: `${horizontalScrollbarHeight}px`
     };
 
-    const scrollbarWidthStyle = { height: '1px', width: `${contentWidth + leftGutterWidth}px` };
+    const scrollbarWidthStyle = { height: '1px', width: `${contentWidth + leftGutterWidth + rightGutterWidth}px` };
     const horizontalScrollbar = withHorizontalScrolling ? (
       <div
         className='scrollable__horizontal-scrollbar'
