@@ -10,11 +10,13 @@
   "author": "Tyler Wanek",
   "license": "MIT",
   "devDependencies": {
+    "animation-timer": "^1.0.12",
     "babel-core": "^6.9.1",
     "babel-loader": "^6.2.4",
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-react": "^6.5.0",
     "css-loader": "^0.23.1",
+    "functional-easing": "^1.0.8",
     "html-webpack-plugin": "^2.21.0",
     "lodash": "^4.14.2",
     "react": "^15.1.0",

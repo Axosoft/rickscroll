@@ -1,51 +1,48 @@
 const React = require('react');
+require('../../../static/css/scrollable');
+const { AnimationTimer } = require('animation-timer');
+const { Easer } = require('functional-easing');
 const _ = require('lodash');
 const { PropTypes: types } = React;
 
-require('../../../static/css/scrollable');
-
+const constants = require('../constants');
+const helpers = require('../helpers');
 const HorizontalWrapper = require('./HorizontalWrapper');
-
-const constants = {
-  LEFT_GUTTER_WIDTH: 0,
-  HORIZONTAL_SCROLLBAR_HEIGHT: 15,
-  RIGHT_GUTTER_WIDTH: 0,
-  VERTICAL_SCROLLBAR_WIDTH: 15
-};
-
-const helpers = {
-  buildGutter(ComponentClass, minWidth) {
-    const widthStyle = minWidth ? { minWidth } : undefined;
-    return ComponentClass ?
-      <span className='scrollable__gutter' style={widthStyle}><ComponentClass /></span> :
-      undefined;
-  },
-
-  getMaxHeight(rowHeight, numRows, offsetHeight) {
-    return (rowHeight * numRows) - offsetHeight;
-  },
-
-  getScrollValues(preClampTransform, rowHeight, maxHeight, offsetBuffer) {
-    const verticalTransform = _.clamp(preClampTransform, 0, maxHeight);
-    const topIndex = _.floor(verticalTransform / (rowHeight * offsetBuffer)) * offsetBuffer;
-    return { topIndex, verticalTransform };
-  }
-};
+const utils = require('../utils');
 
 class Scrollable extends React.Component {
   constructor(props) {
     super(props);
+    this._getThrottledAnimationFrameFn = this._getThrottledAnimationFrameFn.bind(this);
+    this._getRenderableGutter = this._getRenderableGutter.bind(this);
     this._getRenderableRow = this._getRenderableRow.bind(this);
     this._onHorizontalScroll = this._onHorizontalScroll.bind(this);
     this._onMouseWheel = this._onMouseWheel.bind(this);
     this._onVerticalScroll = this._onVerticalScroll.bind(this);
+    this._scrollTo = this._scrollTo.bind(this);
     this.state = {
+      animation: null,
       displayBuffer: 100,
       horizontalTransform: 0,
       offsetBuffer: 8,
+      scrollingToPosition: new utils.Point(0, 0),
       topIndex: 0,
       verticalTransform: 0
     };
+  }
+
+  componentWillReceiveProps({ scrollTo: nextScrollTo = {} }) {
+    const { scrollTo: prevScrollTo = {} } = this.props;
+    if (!_.isEqual(prevScrollTo, nextScrollTo)) {
+      this._scrollTo(nextScrollTo);
+    }
+  }
+
+  _getRenderableGutter(ComponentClass, minWidth) {
+    const widthStyle = minWidth ? { minWidth } : undefined;
+    return ComponentClass ?
+      <span className='scrollable__gutter' style={widthStyle}><ComponentClass /></span> :
+      undefined;
   }
 
   _getRenderableRow(translateStyle) {
@@ -64,8 +61,8 @@ class Scrollable extends React.Component {
         horizontalTransform
       } = this.state;
 
-      const leftComponent = helpers.buildGutter(gutters.left, leftGutterWidth);
-      const rightComponent = helpers.buildGutter(gutters.right, rightGutterWidth);
+      const leftComponent = this._getRenderableGutter(gutters.left, leftGutterWidth);
+      const rightComponent = this._getRenderableGutter(gutters.right, rightGutterWidth);
       const contentComponent = horizontalTransform !== undefined ?
         <ContentComponent offset={horizontalTransform} /> :
         <ContentComponent />;
@@ -78,6 +75,32 @@ class Scrollable extends React.Component {
         </div>
       );
     };
+  }
+
+  _getThrottledAnimationFrameFn(scrollTo) {
+    const { horizontalTransform, verticalTransform } = this.state;
+    const delta = _.clone(scrollTo)
+      .sub(new utils.Point(horizontalTransform, verticalTransform));
+
+    const transition = new utils.Point(0, 0);
+    const easer = new Easer()
+      .using('out-cubic');
+
+    return _.throttle(easer(elapsedTime => {
+      if (!_.isEqual(scrollTo, this.state.scrollingToPosition)) {
+        return;
+      }
+
+      const deltaScrolled = new utils.Point(delta.x, delta.y)
+        .scale(elapsedTime)
+        .sub(transition);
+
+      transition.add(deltaScrolled);
+      this._onMouseWheel({
+        deltaX: deltaScrolled.x,
+        deltaY: deltaScrolled.y
+      });
+    }), constants.ANIMATION_FPS_30, { leading: true });
   }
 
   _onHorizontalScroll() {
@@ -141,6 +164,21 @@ class Scrollable extends React.Component {
     const maxHeight = helpers.getMaxHeight(rowHeight, rows.length, offsetHeight);
 
     this.setState(helpers.getScrollValues(scrollTop, rowHeight, maxHeight, offsetBuffer));
+  }
+
+  _scrollTo({ x = 0, y = 0 }) {
+    let { animation } = this.state;
+    if (animation) {
+      animation.stop();
+    }
+
+    const scrollingToPosition = new utils.Point(x, y);
+
+    animation = new AnimationTimer()
+    .on('tick', this._getThrottledAnimationFrameFn(scrollingToPosition))
+    .play();
+
+    this.setState({ animation, scrollingToPosition });
   }
 
   render() {
@@ -240,6 +278,10 @@ Scrollable.propTypes = {
     scrollbarHeight: types.number
   }),
   rows: types.array.isRequired,
+  scrollTo: types.shape({
+    x: types.number,
+    y: types.number
+  }),
   verticalScrollConfig: types.shape({
     rowHeight: types.number.isRequired,
     scrollbarWidth: types.number

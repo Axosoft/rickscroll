@@ -49,36 +49,68 @@ function getMock(numRows) {
   return _.range(numRows).map(createRow);
 }
 
-function ScrollableWrapper() {
-  const mock = getMock(10000);
-  const contentWidth = calculateWidthOfSpan(`The content in row 9999 is very long and has an incredibly long signatur` +
-    `e that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we` +
-    `'re gouing to test this, because we don't know if it will work right.`
-  );
+class ScrollableWrapper extends React.Component {
+  constructor(props) {
+    super(props);
+    const mock = getMock(10000);
+    const contentWidth = calculateWidthOfSpan(`The content in row 9999 is very long and has an incredibly long signatur` +
+      `e that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we` +
+      `'re gouing to test this, because we don't know if it will work right.`
+    );
 
-  const gutterConfig = {
-    left: {
-      width: calculateWidthOfSpan(`10000`) + 6
-    },
-    right: {
-      width: calculateWidthOfSpan('Right gutter for 9999') + 100
-    }
-  };
-  const horizontalScrollConfig = {
-    contentWidth
-  };
-  const verticalScrollConfig = {
-    rowHeight: 20
-  };
+    const gutterConfig = {
+      left: {
+        width: calculateWidthOfSpan(`9999`) + 6
+      },
+      right: {
+        width: calculateWidthOfSpan('Right gutter for 9999') + 100
+      }
+    };
+    const horizontalScrollConfig = {
+      contentWidth
+    };
+    const verticalScrollConfig = {
+      rowHeight: 20
+    };
+    this.state = {
+      mock,
+      contentWidth,
+      gutterConfig,
+      horizontalScrollConfig,
+      verticalScrollConfig
+    };
+  }
 
-  return (
-    <Scrollable
-      gutterConfig={gutterConfig}
-      horizontalScrollConfig={horizontalScrollConfig}
-      rows={mock}
-      verticalScrollConfig={verticalScrollConfig}
-    />
-  );
+  componentDidMount() {
+    setInterval(() => {
+      this.setState({
+        scrollTo: {
+          y: Math.random() * this.state.mock.length * 20
+        }
+      });
+    }, Math.random() * 6000);
+  }
+
+  render() {
+    const {
+      mock,
+      contentWidth,
+      gutterConfig,
+      horizontalScrollConfig,
+      scrollTo,
+      verticalScrollConfig
+    } = this.state;
+
+    return (
+      <Scrollable
+        gutterConfig={gutterConfig}
+        horizontalScrollConfig={horizontalScrollConfig}
+        rows={mock}
+        scrollTo={scrollTo}
+        verticalScrollConfig={verticalScrollConfig}
+      />
+    );
+  }
 }
 
 module.exports = ScrollableWrapper;
