@@ -51,8 +51,14 @@ class Scrollable extends React.Component {
   _getRenderableRow(translateStyle) {
     return ({ contentComponent: ContentComponent, gutters = {} }, index) => {
       const {
-        leftGutterWidth,
-        rightGutterWidth
+        gutterConfig: {
+          left: {
+            width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
+          } = {},
+          right: {
+            width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
+          } = {}
+        } = {}
       } = this.props;
       const {
         horizontalTransform
@@ -86,9 +92,17 @@ class Scrollable extends React.Component {
   _onMouseWheel({ deltaX, deltaY }) {
     const {
       refs: { horizontalScrollbar, verticalScrollbar },
-      props: { rowHeight, rows, verticalScrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH, withHorizontalScrolling },
+      props: {
+        horizontalScrollConfig,
+        verticalScrollConfig: {
+          rowHeight,
+          scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
+        },
+        rows
+      },
       state: { offsetBuffer }
     } = this;
+    const withHorizontalScrolling = !!horizontalScrollConfig;
 
     // vertical
     const maxHeight = helpers.getMaxHeight(rowHeight, rows.length, verticalScrollbar.offsetHeight);
@@ -100,7 +114,7 @@ class Scrollable extends React.Component {
       scrollChanges.horizontalTransform = _.clamp(
         this.state.horizontalTransform + deltaX,
         0,
-        (horizontalScrollbar.scrollWidth - horizontalScrollbar.offsetWidth) + verticalScrollbarWidth
+        (horizontalScrollbar.scrollWidth - horizontalScrollbar.offsetWidth) + scrollbarWidth
       );
     }
 
@@ -117,7 +131,10 @@ class Scrollable extends React.Component {
       refs: {
         verticalScrollbar: { offsetHeight, scrollTop }
       },
-      props: { rowHeight, rows },
+      props: {
+        verticalScrollConfig: { rowHeight },
+        rows
+      },
       state: { offsetBuffer }
     } = this;
 
@@ -128,14 +145,24 @@ class Scrollable extends React.Component {
 
   render() {
     const {
-      contentWidth,
-      horizontalScrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT,
-      leftGutterWidth = constants.LEFT_GUTTER_WIDTH,
-      rightGutterWidth = constants.RIGHT_GUTTER_WIDTH,
-      rowHeight,
-      rows,
-      verticalScrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH,
-      withHorizontalScrolling
+      gutterConfig: {
+        left: {
+          width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
+        } = {},
+        right: {
+          width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
+        } = {}
+      } = {},
+      horizontalScrollConfig,
+      horizontalScrollConfig: {
+        contentWidth,
+        scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
+      } = {},
+      verticalScrollConfig: {
+        rowHeight,
+        scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
+      },
+      rows
     } = this.props;
     const {
       displayBuffer,
@@ -145,6 +172,7 @@ class Scrollable extends React.Component {
       verticalTransform
     } = this.state;
 
+    const withHorizontalScrolling = !!horizontalScrollConfig;
     const offset = verticalTransform % (rowHeight * offsetBuffer);
     const scrollbarHeightStyle = {
       height: `${rowHeight * rows.length}px`
@@ -159,10 +187,10 @@ class Scrollable extends React.Component {
       .map(this._getRenderableRow(translateStyle)).value();
 
     const verticalScrollbarContainerWidth = {
-      width: `${verticalScrollbarWidth}px`
+      width: `${scrollbarWidth}px`
     };
     const horizontalScrollbarContainerHeight = {
-      height: `${horizontalScrollbarHeight}px`
+      height: `${scrollbarHeight}px`
     };
 
     const scrollbarWidthStyle = { height: '1px', width: `${contentWidth + leftGutterWidth + rightGutterWidth}px` };
@@ -199,15 +227,25 @@ class Scrollable extends React.Component {
 }
 
 Scrollable.propTypes = {
-  contentWidth: types.number,
-  horizontalScrollbarHeight: types.number,
-  leftGutterWidth: types.number,
-  rightGutterWidth: types.number,
-  rowHeight: types.number.isRequired,
+  gutterConfig: types.shape({
+    left: types.shape({
+      width: types.number
+    }),
+    right: types.shape({
+      width: types.number
+    })
+  }),
+  horizontalScrollConfig: types.shape({
+    contentWidth: types.number.isRequired,
+    scrollbarHeight: types.number
+  }),
   rows: types.array.isRequired,
-  verticalScrollbarWidth: types.number,
-  withHorizontalScrolling: types.bool
+  verticalScrollConfig: types.shape({
+    rowHeight: types.number.isRequired,
+    scrollbarWidth: types.number
+  }).isRequired
 };
+
 Scrollable.HorizontalWrapper = HorizontalWrapper;
 
 module.exports = Scrollable;

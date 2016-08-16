@@ -51,17 +51,32 @@ function getMock(numRows) {
 
 function ScrollableWrapper() {
   const mock = getMock(10000);
-  const leftGutterWidth = calculateWidthOfSpan(`10000`) + 6;
-  const rightGutterWidth = calculateWidthOfSpan('Right gutter for 9999') + 6;
-  const contentWidth = calculateWidthOfSpan(`The content in row 9999 is very long and has an incredibly long signature that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we're gouing to test this, because we don't know if it will work right.`);
+  const contentWidth = calculateWidthOfSpan(`The content in row 9999 is very long and has an incredibly long signatur` +
+    `e that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we` +
+    `'re gouing to test this, because we don't know if it will work right.`
+  );
+
+  const gutterConfig = {
+    left: {
+      width: calculateWidthOfSpan(`10000`) + 6
+    },
+    right: {
+      width: calculateWidthOfSpan('Right gutter for 9999') + 100
+    }
+  };
+  const horizontalScrollConfig = {
+    contentWidth
+  };
+  const verticalScrollConfig = {
+    rowHeight: 20
+  };
+
   return (
     <Scrollable
-      contentWidth={contentWidth}
-      leftGutterWidth={leftGutterWidth}
-      rightGutterWidth={rightGutterWidth}
-      rowHeight={20}
+      gutterConfig={gutterConfig}
+      horizontalScrollConfig={horizontalScrollConfig}
       rows={mock}
-      withHorizontalScrolling
+      verticalScrollConfig={verticalScrollConfig}
     />
   );
 }
