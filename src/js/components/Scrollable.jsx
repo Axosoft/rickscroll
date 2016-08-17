@@ -16,10 +16,12 @@ const utils = require('../utils');
 class Scrollable extends React.Component {
   constructor(props) {
     super(props);
+    this._applyScrollChange = this._applyScrollChange.bind(this);
     this._getThrottledAnimationFrameFn = this._getThrottledAnimationFrameFn.bind(this);
     this._onHorizontalScroll = this._onHorizontalScroll.bind(this);
-    this._onMouseWheel = this._onMouseWheel.bind(this);
     this._onResize = this._onResize.bind(this);
+    this._onMouseWheel = this._onMouseWheel.bind(this);
+    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_30, { trailing: true });
     this._onVerticalScroll = this._onVerticalScroll.bind(this);
     this._scrollTo = this._scrollTo.bind(this);
     this._startResize = this._startResize.bind(this);
@@ -49,39 +51,7 @@ class Scrollable extends React.Component {
     }
   }
 
-  _getThrottledAnimationFrameFn(scrollTo) {
-    const { horizontalTransform, verticalTransform } = this.state;
-    const delta = _.clone(scrollTo)
-      .sub(new utils.Point(horizontalTransform, verticalTransform));
-    const transition = new utils.Point(0, 0);
-
-    return _.throttle(easer(elapsedTime => {
-      if (!_.isEqual(scrollTo, this.state.scrollingToPosition)) {
-        return;
-      }
-
-      const deltaScrolled = new utils.Point(delta.x, delta.y)
-        .scale(elapsedTime)
-        .sub(transition);
-
-      transition.add(deltaScrolled);
-      this._onMouseWheel({
-        deltaX: deltaScrolled.x,
-        deltaY: deltaScrolled.y
-      });
-    }), constants.ANIMATION_FPS_30, { leading: true });
-  }
-
-  _onHorizontalScroll() {
-    const {
-      refs: {
-        horizontalScrollbar: { scrollLeft }
-      }
-    } = this;
-    this.setState({ horizontalTransform: scrollLeft });
-  }
-
-  _onMouseWheel({ deltaX, deltaY }) {
+  _applyScrollChange({ deltaX, deltaY }) {
     const {
       refs: { horizontalScrollbar, verticalScrollbar },
       props: {
@@ -116,6 +86,42 @@ class Scrollable extends React.Component {
         horizontalScrollbar.scrollLeft = scrollChanges.horizontalTransform;
       }
     });
+  }
+
+  _getThrottledAnimationFrameFn(scrollTo) {
+    const { horizontalTransform, verticalTransform } = this.state;
+    const delta = _.clone(scrollTo)
+      .sub(new utils.Point(horizontalTransform, verticalTransform));
+    const transition = new utils.Point(0, 0);
+
+    return _.throttle(easer(elapsedTime => {
+      if (!_.isEqual(scrollTo, this.state.scrollingToPosition)) {
+        return;
+      }
+
+      const deltaScrolled = new utils.Point(delta.x, delta.y)
+        .scale(elapsedTime)
+        .sub(transition);
+
+      transition.add(deltaScrolled);
+      this._applyScrollChange({
+        deltaX: deltaScrolled.x,
+        deltaY: deltaScrolled.y
+      });
+    }), constants.ANIMATION_FPS_30, { leading: true });
+  }
+
+  _onHorizontalScroll() {
+    const {
+      refs: {
+        horizontalScrollbar: { scrollLeft }
+      }
+    } = this;
+    this.setState({ horizontalTransform: scrollLeft });
+  }
+
+  _onMouseWheel({ deltaX, deltaY }) {
+    this._onThrottledMouseWheel({ deltaX, deltaY });
   }
 
   _onResize({ clientX }) {
