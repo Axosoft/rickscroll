@@ -73,7 +73,6 @@ class Scrollable extends React.Component {
       } = {}
     } = this.props.gutterConfig;
     const widthStyle = utils.getWidthStyle(width);
-    console.log(onGutterResize);
     const className = classnames(
       handleClassName,
       'scrollable__handle',
@@ -223,14 +222,14 @@ class Scrollable extends React.Component {
     const { baseWidth, performing, side, startingPosition } = this.state.resize;
     const {
       [side]: {
-        minWidth
+        minWidth,
+        onGutterResize = (() => {})
       } = {}
     } = this.props.gutterConfig;
     if (performing) {
       this._resizableRefs[side].forEach(resizableRef => {
-        if (_.get(resizableRef, 'style')) {
-          const newWidth = utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX);
-          resizableRef.style.width = `${newWidth}px`;
+        if (resizableRef) {
+          onGutterResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
         }
       });
     }
@@ -296,7 +295,6 @@ class Scrollable extends React.Component {
         onGutterResize = () => {}
       } = {}
     } = this.props.gutterConfig;
-    onGutterResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
     this.setState({
       resize: {
         baseWidth: 0,
