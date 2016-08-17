@@ -26,9 +26,9 @@ class Scrollable extends React.Component {
     this._stopResize = this._stopResize.bind(this);
     this.state = {
       animation: null,
-      displayBuffer: 100,
+      displayBuffer: 54,
       horizontalTransform: 0,
-      offsetBuffer: 25,
+      offsetBuffer: 6,
       resize: {
         baseWidth: 0,
         currentPosition: 0,
