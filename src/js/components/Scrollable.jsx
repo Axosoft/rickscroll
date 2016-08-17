@@ -28,7 +28,7 @@ class Scrollable extends React.Component {
     this._stopResize = this._stopResize.bind(this);
     this.state = {
       animation: null,
-      displayBuffer: 54,
+      displayBuffer: 60,
       horizontalTransform: 0,
       offsetBuffer: 6,
       resize: {
@@ -247,22 +247,25 @@ class Scrollable extends React.Component {
       transform: `translate3d(-0px, -${offset}px, 0px)`
     };
 
-    const renderableRows = _(rows)
-      .slice(Math.min(topIndex, rows.length), topIndex + displayBuffer)
-      .map(({ contentComponent, gutters }, index) => (
-        <Row
-          contentComponent={contentComponent}
-          gutterConfig={gutterConfig}
-          gutters={gutters}
-          horizontalTransform={horizontalTransform}
-          index={index}
-          key={index}
-          onStartResize={this._startResize}
-          rowHeight={rowHeight}
-        />
-      )).value();
-    const showRows = _.chunk(renderableRows, offsetBuffer)
-      .map((rows, index) => (<div key={index} style={translateStyle}>{rows}</div>));
+    const showRows = _.chunk(
+      _.slice(rows, Math.min(topIndex, rows.length), topIndex + displayBuffer),
+      offsetBuffer
+    ).map((row, outerIndex) => (
+      <div key={outerIndex + (topIndex / offsetBuffer)} style={translateStyle}>
+        {row.map(({ contentComponent, gutters }, innerIndex) => (
+          <Row
+            contentComponent={contentComponent}
+            gutterConfig={gutterConfig}
+            gutters={gutters}
+            horizontalTransform={horizontalTransform}
+            index={innerIndex}
+            key={innerIndex}
+            onStartResize={this._startResize}
+            rowHeight={rowHeight}
+          />
+        ))}
+      </div>
+    ));
 
     const verticalScrollbarContainerWidth = {
       minWidth: `${scrollbarWidth}px`
