@@ -10,14 +10,13 @@ const easer = new Easer()
 
 const constants = require('../constants');
 const HorizontalWrapper = require('./HorizontalWrapper');
+const Row = require('./Row');
 const utils = require('../utils');
 
 class Scrollable extends React.Component {
   constructor(props) {
     super(props);
     this._getThrottledAnimationFrameFn = this._getThrottledAnimationFrameFn.bind(this);
-    this._getRenderableGutter = this._getRenderableGutter.bind(this);
-    this._getRenderableRow = this._getRenderableRow.bind(this);
     this._onHorizontalScroll = this._onHorizontalScroll.bind(this);
     this._onMouseWheel = this._onMouseWheel.bind(this);
     this._onResize = this._onResize.bind(this);
@@ -25,15 +24,11 @@ class Scrollable extends React.Component {
     this._scrollTo = this._scrollTo.bind(this);
     this._startResize = this._startResize.bind(this);
     this._stopResize = this._stopResize.bind(this);
-    this._resizableRefs = {
-      [constants.handleClass.LEFT]: [],
-      [constants.handleClass.RIGHT]: []
-    };
     this.state = {
       animation: null,
       displayBuffer: 100,
       horizontalTransform: 0,
-      offsetBuffer: 8,
+      offsetBuffer: 25,
       resize: {
         baseWidth: 0,
         currentPosition: 0,
@@ -52,101 +47,6 @@ class Scrollable extends React.Component {
     if (!_.isEqual(prevScrollTo, nextScrollTo)) {
       this._scrollTo(nextScrollTo);
     }
-  }
-
-  _getRenderableGutter(side, index, { componentClass: ComponentClass } = {}, width, minWidth) {
-    const widthStyle = utils.getWidthStyle(width, minWidth);
-
-    const resizableRef = r => {
-      this._resizableRefs[side][index] = r;
-    };
-
-    return ComponentClass && widthStyle ?
-      <span className='scrollable__gutter' style={widthStyle} ref={resizableRef}><ComponentClass /></span> :
-      undefined;
-  }
-
-  _getRenderableHandle(side, { handleClassName } = {}, width) {
-    const {
-      [side]: {
-        onGutterResize
-      } = {}
-    } = this.props.gutterConfig;
-    const widthStyle = utils.getWidthStyle(width);
-    const className = classnames(
-      handleClassName,
-      'scrollable__handle',
-      { 'scrollable__handle--grabbable': !!onGutterResize },
-      `scrollable__handle--${side}`
-    );
-    return widthStyle ? (
-      <span
-        className={className}
-        onMouseDown={this._startResize(side)}
-        style={widthStyle}
-      />
-    ) : undefined;
-  }
-
-  _getRenderableRow(translateStyle) {
-    return ({ contentComponent: ContentComponent, gutters = {} }, index) => {
-      const {
-        gutterConfig: {
-          left: {
-            handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
-            minWidth: leftGutterMinWidth = constants.LEFT_GUTTER_WIDTH,
-            width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
-          } = {},
-          right: {
-            handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
-            minWidth: rightGutterMinWidth = constants.LEFT_GUTTER_WIDTH,
-            width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
-          } = {}
-        } = {}
-      } = this.props;
-      const {
-        horizontalTransform,
-        resize
-      } = this.state;
-
-      const leftComponent = this._getRenderableGutter(
-        constants.handleClass.LEFT,
-        index,
-        gutters.left,
-        leftGutterWidth,
-        leftGutterMinWidth
-      );
-      const leftHandleComponent = this._getRenderableHandle(
-        constants.handleClass.LEFT,
-        gutters.left,
-        leftHandleWidth
-      );
-      const rightComponent = this._getRenderableGutter(
-        constants.handleClass.RIGHT,
-        index,
-        gutters.right,
-        rightGutterWidth,
-        rightGutterMinWidth
-      );
-      const rightHandleComponent = this._getRenderableHandle(
-        constants.handleClass.RIGHT,
-        gutters.right,
-        rightHandleWidth
-      );
-      const contentComponent = horizontalTransform !== undefined ?
-        <ContentComponent offset={horizontalTransform} /> :
-        <ContentComponent />;
-
-      return (
-        <div className='scrollable__row' key={index} style={translateStyle}>
-          {leftComponent}
-          {leftHandleComponent}
-          <span className='scrollable__content'>{contentComponent}</span>
-          {rightHandleComponent}
-          {rightComponent}
-        </div>
-      );
-    };
   }
 
   _getThrottledAnimationFrameFn(scrollTo) {
@@ -227,11 +127,7 @@ class Scrollable extends React.Component {
       } = {}
     } = this.props.gutterConfig;
     if (performing) {
-      this._resizableRefs[side].forEach(resizableRef => {
-        if (resizableRef) {
-          onGutterResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
-        }
-      });
+      onGutterResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
     }
   }
 
@@ -307,6 +203,7 @@ class Scrollable extends React.Component {
 
   render() {
     const {
+      gutterConfig,
       gutterConfig: {
         left: {
           width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
@@ -341,25 +238,41 @@ class Scrollable extends React.Component {
       height: `${rowHeight * rows.length}px`
     };
     const translateStyle = {
-      transform: `translate3d(-0px, -${offset}px, 0px)`,
-      height: `${rowHeight}px`
+      transform: `translate3d(-0px, -${offset}px, 0px)`
     };
 
-    const showRows = _(rows)
+    const renderableRows = _(rows)
       .slice(Math.min(topIndex, rows.length), topIndex + displayBuffer)
-      .map(this._getRenderableRow(translateStyle)).value();
+      .map(({ contentComponent, gutters }, index) => (
+        <Row
+          contentComponent={contentComponent}
+          gutterConfig={gutterConfig}
+          gutters={gutters}
+          horizontalTransform={horizontalTransform}
+          index={index}
+          key={index}
+          onStartResize={this._startResize}
+          rowHeight={rowHeight}
+        />
+      )).value();
+    const showRows = _.chunk(renderableRows, offsetBuffer)
+      .map((rows, index) => (<div key={topIndex + (index * offsetBuffer)} style={translateStyle}>{rows}</div>));
 
     const verticalScrollbarContainerWidth = {
-      width: `${scrollbarWidth}px`
+      minWidth: `${scrollbarWidth}px`
     };
     const horizontalScrollbarContainerHeight = {
-      height: `${scrollbarHeight}px`
+      minHeight: `${scrollbarHeight}px`
+    };
+    const contentWidthStyle = {
+      width: `calc(100% - ${scrollbarWidth}px)`
     };
 
     const scrollbarWidthStyle = { height: '1px', width: `${contentWidth + leftGutterWidth + rightGutterWidth}px` };
     const horizontalScrollbar = withHorizontalScrolling ? (
       <div
         className='scrollable__horizontal-scrollbar'
+        key='scrollable'
         onScroll={this._onHorizontalScroll}
         ref='horizontalScrollbar'
         style={horizontalScrollbarContainerHeight}
@@ -370,13 +283,14 @@ class Scrollable extends React.Component {
 
     return (
       <div className={classnames('scrollable', { ['scrollable--performing']: performing })} ref='scrollable'>
-        <div className='scrollable__content-wrapper'>
-          <div
-            className='scrollable__contents'
-            onMouseMove={this._onResize}
-            onMouseUp={this._stopResize}
-            onWheel={this._onMouseWheel}
-          >
+        <div
+          className='scrollable__content-wrapper'
+          key='content-wrapper'
+          onMouseMove={this._onResize}
+          onMouseUp={this._stopResize}
+          onWheel={this._onMouseWheel}
+        >
+          <div className='scrollable__contents' key='contents' style={contentWidthStyle}>
             {showRows}
           </div>
           <div

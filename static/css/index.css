@@ -6,55 +6,6 @@ html, body, #scrollable {
   overflow: hidden;
 }
 
-.scrollable {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.scrollable .scrollable__content-wrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-}
-
-.scrollable .scrollable__contents {
-  width: 100%;
-}
-
-.scrollable .scrollable__vertical-scrollbar {
-  overflow-y: scroll;
-  z-index: 2;
-}
-
-.scrollable .scrollable__horizontal-scrollbar {
-  overflow-x: scroll;
-  z-index: 2;
-}
-
-.scrollable .scrollable__row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.scrollable .scrollable__content {
-  flex-grow: 1;
-  z-index: 1;
-}
-
-.scrollable .scrollable__horizontal-wrapper {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-}
-
-.scrollable .scrollable__gutter {
-  z-index: 2;
-}
-
 .whitespace {
   white-space: nowrap;
 }

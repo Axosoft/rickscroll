@@ -3,12 +3,32 @@ const _ = require('lodash');
 
 const Scrollable = require('./Scrollable');
 
+class LeftGutter extends React.Component {
+  shouldComponentUpdate(nextProps, nextState) {
+    return !_.isEqual(nextProps, this.props) || !_.isEqual(nextState, this.state);
+  }
+
+  render() {
+    return <span className='gutter left'>{this.props.x}</span>;
+  }
+}
+
+class RightGutter extends React.Component {
+  shouldComponentUpdate(nextProps, nextState) {
+    return !_.isEqual(nextProps, this.props) || !_.isEqual(nextState, this.state);
+  }
+
+  render() {
+    return <span className='gutter right'>Right gutter for {this.props.x}</span>;
+  }
+}
+
 function leftGutter(x) {
-  return () => <span className='gutter left'>{x}</span>
+  return () => <LeftGutter x={x} />;
 }
 
 function rightGutter(x) {
-    return () => <span className='gutter right'>Right gutter for {x}</span>;
+    return () => <RightGutter x={x} />;
 }
 
 function row(x) {
