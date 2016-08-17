@@ -81,15 +81,15 @@ class ScrollableWrapper extends React.Component {
     };
   }
 
-  componentDidMount() {
-    setInterval(() => {
-      this.setState({
-        scrollTo: {
-          y: Math.random() * this.state.mock.length * 20
-        }
-      });
-    }, Math.random() * 6000);
-  }
+  // componentDidMount() {
+  //   setInterval(() => {
+  //     this.setState({
+  //       scrollTo: {
+  //         y: Math.random() * this.state.mock.length * 20
+  //       }
+  //     });
+  //   }, Math.random() * 6000);
+  // }
 
   render() {
     const {
