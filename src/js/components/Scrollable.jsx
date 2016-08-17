@@ -256,7 +256,7 @@ class Scrollable extends React.Component {
         />
       )).value();
     const showRows = _.chunk(renderableRows, offsetBuffer)
-      .map((rows, index) => (<div key={topIndex + (index * offsetBuffer)} style={translateStyle}>{rows}</div>));
+      .map((rows, index) => (<div key={index} style={translateStyle}>{rows}</div>));
 
     const verticalScrollbarContainerWidth = {
       minWidth: `${scrollbarWidth}px`
