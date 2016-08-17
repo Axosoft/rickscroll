@@ -1,7 +1,13 @@
 module.exports = {
   ANIMATION_FPS_30: 1000 / 30,
+  handleClass: {
+    LEFT: 'left',
+    RIGHT: 'right'
+  },
   LEFT_GUTTER_WIDTH: 0,
+  LEFT_HANDLE_WIDTH: 0,
   HORIZONTAL_SCROLLBAR_HEIGHT: 15,
   RIGHT_GUTTER_WIDTH: 0,
+  RIGHT_HANDLE_WIDTH: 0,
   VERTICAL_SCROLLBAR_WIDTH: 15
 };

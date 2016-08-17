@@ -1,12 +1,33 @@
+const _ = require('lodash');
+
+const constants = require('./constants');
+
 module.exports = {
   getMaxHeight(rowHeight, numRows, offsetHeight) {
     return (rowHeight * numRows) - offsetHeight;
+  },
+
+  getResizeWidth(side, minWidth = 0, baseWidth, startingPosition, currentPosition) {
+    const deltaWidth = startingPosition - currentPosition;
+    const modifier = side === constants.handleClass.LEFT ? -1 : 1;
+    return Math.max(minWidth, baseWidth + (modifier * deltaWidth));
   },
 
   getScrollValues(preClampTransform, rowHeight, maxHeight, offsetBuffer) {
     const verticalTransform = _.clamp(preClampTransform, 0, maxHeight);
     const topIndex = _.floor(verticalTransform / (rowHeight * offsetBuffer)) * offsetBuffer;
     return { topIndex, verticalTransform };
+  },
+
+  getWidthStyle(width = 0, minWidth = 0) {
+    let style = undefined;
+    if (_.isNumber(width) && width > 0) {
+      style = _.assign(style, { width: `${width}px` });
+    }
+    if (_.isNumber(minWidth) && minWidth > 0) {
+      style = _.assign(style, { minWidth: `${minWidth}px` });
+    }
+    return style;
   },
 
   Point: class {

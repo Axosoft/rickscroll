@@ -5,6 +5,15 @@
   flex-direction: column;
 }
 
+.scrollable.scrollable--performing {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 .scrollable .scrollable__content-wrapper {
   width: 100%;
   height: 100%;
@@ -45,4 +54,13 @@
 
 .scrollable .scrollable__gutter {
   z-index: 2;
+}
+
+.scrollable .scrollable__handle {
+  background-color: #000000;
+  z-index: 2;
+}
+
+.scrollable .scrollable__handle.scrollable__handle--grabbable {
+  cursor: col-resize;
 }

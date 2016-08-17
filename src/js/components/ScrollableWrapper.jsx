@@ -23,8 +23,13 @@ function createRow(x) {
   return {
     contentComponent: row(x),
     gutters: {
-      left: leftGutter(x),
-      right: rightGutter(x)
+      left: {
+        componentClass: leftGutter(x),
+        handleClassName: 'left-resizer'
+      },
+      right: {
+        componentClass: rightGutter(x)
+      }
     }
   };
 }
@@ -52,20 +57,16 @@ function getMock(numRows) {
 class ScrollableWrapper extends React.Component {
   constructor(props) {
     super(props);
+    this._onLeftGutterResize = this._onLeftGutterResize.bind(this);
+    this._onRightGutterResize = this._onRightGutterResize.bind(this);
     const mock = getMock(100000);
     const contentWidth = calculateWidthOfSpan(`The content in row 99999 is very long and has an incredibly long signatur` +
       `e that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we` +
       `'re gouing to test this, because we don't know if it will work right.`
     );
 
-    const gutterConfig = {
-      left: {
-        width: calculateWidthOfSpan(`99999`) + 6
-      },
-      right: {
-        width: calculateWidthOfSpan('Right gutter for 99999') + 100
-      }
-    };
+    const leftWidth = calculateWidthOfSpan(`99999`) + 6;
+    const rightWidth = calculateWidthOfSpan('Right gutter for 99999') + 100;
     const horizontalScrollConfig = {
       contentWidth
     };
@@ -75,31 +76,50 @@ class ScrollableWrapper extends React.Component {
     this.state = {
       mock,
       contentWidth,
-      gutterConfig,
+      leftMinWidth: leftWidth,
+      leftWidth,
       horizontalScrollConfig,
+      rightMinWidth: rightWidth,
+      rightWidth,
       verticalScrollConfig
     };
   }
 
-  // componentDidMount() {
-  //   setInterval(() => {
-  //     this.setState({
-  //       scrollTo: {
-  //         y: Math.random() * this.state.mock.length * 20
-  //       }
-  //     });
-  //   }, Math.random() * 6000);
-  // }
+  _onLeftGutterResize(leftWidth) {
+    this.setState({ leftWidth });
+  }
+
+  _onRightGutterResize(rightWidth) {
+    this.setState({ rightWidth });
+  }
 
   render() {
     const {
       mock,
       contentWidth,
-      gutterConfig,
+      leftMinWidth,
+      leftWidth,
       horizontalScrollConfig,
+      rightMinWidth,
+      rightWidth,
       scrollTo,
       verticalScrollConfig
     } = this.state;
+
+    const gutterConfig = {
+      left: {
+        handleWidth: 3,
+        onGutterResize: this._onLeftGutterResize,
+        minWidth: leftMinWidth,
+        width: leftWidth
+      },
+      right: {
+        handleWidth: 3,
+        onGutterResize: this._onRightGutterResize,
+        minWidth: rightMinWidth,
+        width: rightWidth
+      }
+    };
 
     return (
       <Scrollable
