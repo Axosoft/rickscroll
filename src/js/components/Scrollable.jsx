@@ -21,7 +21,7 @@ class Scrollable extends React.Component {
     this._onHorizontalScroll = this._onHorizontalScroll.bind(this);
     this._onResize = this._onResize.bind(this);
     this._onMouseWheel = this._onMouseWheel.bind(this);
-    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_30, { trailing: true });
+    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_60, { trailing: true });
     this._onVerticalScroll = this._onVerticalScroll.bind(this);
     this._scrollTo = this._scrollTo.bind(this);
     this._startResize = this._startResize.bind(this);
@@ -108,7 +108,7 @@ class Scrollable extends React.Component {
         deltaX: deltaScrolled.x,
         deltaY: deltaScrolled.y
       });
-    }), constants.ANIMATION_FPS_30, { leading: true });
+    }), constants.ANIMATION_FPS_60, { leading: true });
   }
 
   _onHorizontalScroll() {
