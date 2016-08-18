@@ -20,7 +20,7 @@ class Row extends React.Component {
   _getRenderableGutter(side, index, { componentClass: ComponentClass } = {}, width) {
     const widthStyle = utils.getWidthStyle(width);
     return ComponentClass && widthStyle ?
-      <span className='scrollable__gutter' style={widthStyle}><ComponentClass key={index} /></span> :
+      <span className='scrollable__gutter' style={widthStyle}><ComponentClass key={`gutter-${side}`} /></span> :
       undefined;
   }
 
@@ -43,6 +43,7 @@ class Row extends React.Component {
     return widthStyle ? (
       <span
         className={className}
+        key={`handle-${side}`}
         onMouseDown={onStartResize(side)}
         style={widthStyle}
       />
@@ -98,10 +99,10 @@ class Row extends React.Component {
       <ContentComponent />;
 
     return (
-      <div className='scrollable__row' key={index} style={heightStyle}>
+      <div className='scrollable__row' style={heightStyle}>
         {leftComponent}
         {leftHandleComponent}
-        <span className='scrollable__content'>{contentComponent}</span>
+        <span className='scrollable__content' key='content-wrapper'>{contentComponent}</span>
         {rightHandleComponent}
         {rightComponent}
       </div>

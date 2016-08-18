@@ -34,7 +34,8 @@ function rightGutter(x) {
 function row(x) {
   return props => (
     <Scrollable.HorizontalWrapper {...props}>
-      <span className='whitespace'>The content in row {x} is very long and has an incredibly long signature that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we're gouing to test this, because we don't know if it will work right.</span>
+      {/* <span className='whitespace'>The content in row {x} is very long and has an incredibly long signature that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we're gouing to test this, because we don't know if it will work right.</span> */}
+      <span className='whitespace'>The content in row {x} is very long and has an incredibly long signature that we will use to test the horizontal scrolling in this new version of scrollable.</span>
     </Scrollable.HorizontalWrapper>
   );
 }
@@ -79,14 +80,14 @@ class ScrollableWrapper extends React.Component {
     super(props);
     this._onLeftGutterResize = this._onLeftGutterResize.bind(this);
     this._onRightGutterResize = this._onRightGutterResize.bind(this);
-    const mock = getMock(100000);
-    const contentWidth = calculateWidthOfSpan(`The content in row 99999 is very long and has an incredibly long signatur` +
-      `e that we will use to test the horizontal scrolling in this new version of scrollable. It's a good thing that we` +
-      `'re gouing to test this, because we don't know if it will work right.`
+    const mock = getMock(100);
+    const contentWidth = calculateWidthOfSpan(`The content in row 99 is very long and has an incredibly long signatur` +
+      `e that we will use to test the horizontal scrolling in this new version of scrollable.`//` It's a good thing that ` +
+      // `we're gouing to test this, because we don't know if it will work right.`
     );
 
-    const leftWidth = calculateWidthOfSpan(`99999`) + 6;
-    const rightWidth = calculateWidthOfSpan('Right gutter for 99999') + 100;
+    const leftWidth = calculateWidthOfSpan(`99`) + 2;
+    const rightWidth = calculateWidthOfSpan('Right gutter for 99') + 2;
     const horizontalScrollConfig = {
       contentWidth
     };

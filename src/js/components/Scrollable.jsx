@@ -47,6 +47,10 @@ class Scrollable extends React.Component {
         startingPosition: 0
       },
       scrollingToPosition: new utils.Point(0, 0),
+      shouldRender: {
+        horizontalScrollbar: false,
+        verticalScrollbar: false
+      },
       topIndex: 0,
       verticalTransform: 0,
       window: {
@@ -63,6 +67,18 @@ class Scrollable extends React.Component {
     }
   }
 
+  shouldComponentUpdate(nextProps, nextState) {
+    return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
+  }
+
+  componentDidMount() {
+    this._updateDimensions(this.props);
+  }
+
+  componentDidUpdate(prevProps) {
+    this._updateDimensions(prevProps);
+  }
+
   _applyScrollChange({ deltaX, deltaY }) {
     const {
       refs: { horizontalScrollbar, verticalScrollbar },
@@ -74,26 +90,32 @@ class Scrollable extends React.Component {
         },
         rows
       },
-      state: { buffers }
+      state: { buffers, shouldRender }
     } = this;
-    const withHorizontalScrolling = !!horizontalScrollConfig;
+    const withHorizontalScrolling = !!horizontalScrollConfig && shouldRender.horizontalScrollbar;
+
+    const scrollChanges = {};
 
     // vertical
-    const maxHeight = utils.getMaxHeight(rowHeight, rows.length, verticalScrollbar.offsetHeight);
-    const verticalTransform = this.state.verticalTransform + deltaY;
-    const scrollChanges = utils.getScrollValues(verticalTransform, rowHeight, maxHeight, buffers.offset);
+    if (shouldRender.verticalScrollbar) {
+      const maxHeight = utils.getMaxHeight(rowHeight, rows.length, verticalScrollbar.offsetHeight);
+      const verticalTransform = this.state.verticalTransform + deltaY;
+      _.assign(scrollChanges, utils.getScrollValues(verticalTransform, rowHeight, maxHeight, buffers.offset));
+    }
 
     // horizontal scrolling
     if (withHorizontalScrolling) {
       scrollChanges.horizontalTransform = _.clamp(
         this.state.horizontalTransform + deltaX,
         0,
-        (horizontalScrollbar.scrollWidth - horizontalScrollbar.offsetWidth) + scrollbarWidth
+        horizontalScrollbar.scrollWidth - horizontalScrollbar.offsetWidth
       );
     }
 
     this.setState(scrollChanges, () => {
-      verticalScrollbar.scrollTop = verticalTransform;
+      if (shouldRender.verticalScrollbar) {
+        verticalScrollbar.scrollTop = scrollChanges.verticalTransform;
+      }
       if (withHorizontalScrolling) {
         horizontalScrollbar.scrollLeft = scrollChanges.horizontalTransform;
       }
@@ -206,14 +228,15 @@ class Scrollable extends React.Component {
       state: {
         buffers,
         horizontalTransform,
+        shouldRender,
         topIndex,
         verticalTransform
       }
     } = this;
 
-    const contentWidthStyle = {
+    const contentWidthStyle = shouldRender.verticalScrollbar ? {
       width: `calc(100% - ${scrollbarWidth}px)`
-    };
+    } : undefined;
     const offset = verticalTransform % (rowHeight * buffers.offset);
     const translateStyle = {
       transform: `translate3d(-0px, -${offset}px, 0px)`
@@ -255,14 +278,22 @@ class Scrollable extends React.Component {
         verticalScrollConfig: {
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         }
-      }
+      },
+      state: { shouldRender }
     } = this;
+
+    const shouldRenderCorner = !!horizontalScrollConfig && shouldRender.verticalScrollbar;
+
+    if (!shouldRenderCorner) {
+      return null;
+    }
 
     const cornerStyle = {
       height: `${scrollbarHeight}px`,
       width: `${scrollbarWidth}px`
     };
-    return horizontalScrollConfig ? <div className='scrollable__corner' style={cornerStyle} /> : undefined;
+
+    return <div className='scrollable__corner' style={cornerStyle} />;
   }
 
   _renderHorizontalScrollbar() {
@@ -271,17 +302,24 @@ class Scrollable extends React.Component {
         horizontalScrollConfig,
         horizontalScrollConfig: {
           scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
-        } = {},
-      }
+        } = {}
+      },
+      state: { shouldRender }
     } = this;
 
-    const withHorizontalScrolling = !!horizontalScrollConfig;
+    const withHorizontalScrolling = !!horizontalScrollConfig && shouldRender.horizontalScrollbar;
+
+    if (!withHorizontalScrolling) {
+      return null;
+    }
+
     const horizontalScrollbarContainerHeight = {
       height: `${scrollbarHeight}px`
     };
-    const scrollbarWidthStyle = { height: '1px', width: `${this._getContentWidth()}px` };
+    const contentWidth = this._getContentWidth();
+    const scrollbarWidthStyle = { height: '1px', width: `${contentWidth}px` };
 
-    return withHorizontalScrolling ? (
+    return (
       <div className='scrollable__bottom-wrapper' style={horizontalScrollbarContainerHeight}>
         <div
           className='scrollable__horizontal-scrollbar'
@@ -294,7 +332,7 @@ class Scrollable extends React.Component {
         </div>
         {this._renderCorner()}
       </div>
-    ) : undefined;
+    );
   }
 
   _renderVerticalScrollbar() {
@@ -305,8 +343,13 @@ class Scrollable extends React.Component {
           rowHeight,
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         }
-      }
+      },
+      state: { shouldRender }
     } = this;
+
+    if (!shouldRender.verticalScrollbar) {
+      return null;
+    }
 
     const scrollbarHeightStyle = {
       height: `${rowHeight * rows.length}px`
@@ -376,6 +419,72 @@ class Scrollable extends React.Component {
         performing: false,
         side: '',
         startingPosition: 0
+      }
+    });
+  }
+
+  _updateDimensions(prevProps) {
+    const {
+      props: {
+        horizontalScrollConfig,
+        horizontalScrollConfig: {
+          scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
+        } = {},
+        verticalScrollConfig,
+        verticalScrollConfig: {
+          rowHeight,
+          scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
+        },
+        rows
+      },
+      refs: {
+        scrollable: { clientHeight, clientWidth }
+      },
+      state: {
+        window: { height, width }
+      }
+    } = this;
+
+    const gutter = ['left', 'right'];
+    const gutterIsEqual = side => {
+      const accessor = `gutterConfig.${side}`;
+      return _.isEqual(_.get(prevProps, accessor), _.get(this.props, accessor));
+    };
+
+    if (
+      clientHeight === height &&
+      clientWidth === width &&
+      _.isEqual(prevProps.horizontalScrollConfig, horizontalScrollConfig) &&
+      _.isEqual(prevProps.verticalScrollConfig, verticalScrollConfig) &&
+      prevProps.rows.length === rows.length &&
+      _.every(gutter, gutterIsEqual)
+    ) {
+      return;
+    }
+
+    const contentHeight = rows.length * rowHeight;
+    const clientHeightTooSmall = clientHeight < contentHeight;
+    const clientHeightTooSmallWithHorizontalScrollbar = clientHeight < (contentHeight + scrollbarHeight);
+
+    const contentWidth = this._getContentWidth();
+    const clientWidthTooSmall = clientWidth < contentWidth;
+    const clientWidthTooSmallWithVerticalScrollbar = clientWidth < (contentWidth + scrollbarWidth);
+
+    const shouldRenderVerticalScrollbar = clientHeightTooSmall || (
+      clientWidthTooSmall && clientHeightTooSmallWithHorizontalScrollbar
+    );
+    const shouldRenderHorizontalScrollbar = clientWidthTooSmall || (
+      clientHeightTooSmall && clientWidthTooSmallWithVerticalScrollbar
+    );
+
+    this.setState({
+      shouldRender: {
+        horizontalScrollbar: shouldRenderHorizontalScrollbar,
+        verticalScrollbar: shouldRenderVerticalScrollbar
+      },
+      window: {
+        height: clientHeight,
+        width: clientWidth
       }
     });
   }
