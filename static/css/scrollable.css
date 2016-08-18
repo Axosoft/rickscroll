@@ -5,7 +5,7 @@
   flex-direction: column;
 }
 
-.scrollable.scrollable--performing {
+.scrollable.scrollable--performing-resize {
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
