@@ -19,13 +19,13 @@ module.exports = {
     return { topIndex, verticalTransform };
   },
 
-  getWidthStyle(width = 0, minWidth = 0) {
+  getWidthStyle(width = 0) {
     let style = undefined;
     if (_.isNumber(width) && width > 0) {
-      style = _.assign(style, { width: `${width}px` });
-    }
-    if (_.isNumber(minWidth) && minWidth > 0) {
-      style = _.assign(style, { minWidth: `${minWidth}px` });
+      style = _.assign(style, {
+        minWidth: `${width}px`,
+        width: `${width}px`
+      });
     }
     return style;
   },

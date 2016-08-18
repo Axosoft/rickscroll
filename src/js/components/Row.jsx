@@ -17,8 +17,8 @@ class Row extends React.Component {
     return !_.isEqual(nextProps, this.props) || !_.isEqual(nextState, this.state);
   }
 
-  _getRenderableGutter(side, index, { componentClass: ComponentClass } = {}, width, minWidth) {
-    const widthStyle = utils.getWidthStyle(width, minWidth);
+  _getRenderableGutter(side, index, { componentClass: ComponentClass } = {}, width) {
+    const widthStyle = utils.getWidthStyle(width);
     return ComponentClass && widthStyle ?
       <span className='scrollable__gutter' style={widthStyle}><ComponentClass key={index} /></span> :
       undefined;
@@ -55,12 +55,10 @@ class Row extends React.Component {
       gutterConfig: {
         left: {
           handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
-          minWidth: leftGutterMinWidth = constants.LEFT_GUTTER_WIDTH,
           width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
         } = {},
         right: {
           handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
-          minWidth: rightGutterMinWidth = constants.LEFT_GUTTER_WIDTH,
           width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
         } = {}
       } = {},
@@ -77,8 +75,7 @@ class Row extends React.Component {
       constants.handleClass.LEFT,
       index,
       gutters.left,
-      leftGutterWidth,
-      leftGutterMinWidth
+      leftGutterWidth
     );
     const leftHandleComponent = this._getRenderableHandle(
       constants.handleClass.LEFT,
@@ -89,8 +86,7 @@ class Row extends React.Component {
       constants.handleClass.RIGHT,
       index,
       gutters.right,
-      rightGutterWidth,
-      rightGutterMinWidth
+      rightGutterWidth
     );
     const rightHandleComponent = this._getRenderableHandle(
       constants.handleClass.RIGHT,
@@ -118,13 +114,11 @@ Row.propTypes = {
   gutterConfig: types.shape({
     left: types.shape({
       handleWidth: types.number,
-      minWidth: types.number,
       width: types.number
     }),
     onGutterResize: types.func,
     right: types.shape({
       handleWidth: types.number,
-      minWidth: types.number,
       width: types.number
     })
   }),
