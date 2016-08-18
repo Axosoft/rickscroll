@@ -21,7 +21,7 @@ class Scrollable extends React.Component {
     this._onHorizontalScroll = this._onHorizontalScroll.bind(this);
     this._onResize = this._onResize.bind(this);
     this._onMouseWheel = this._onMouseWheel.bind(this);
-    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_60, { trailing: true });
+    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_120, { trailing: true });
     this._onVerticalScroll = this._onVerticalScroll.bind(this);
     this._scrollTo = this._scrollTo.bind(this);
     this._startResize = this._startResize.bind(this);
@@ -40,7 +40,11 @@ class Scrollable extends React.Component {
       },
       scrollingToPosition: new utils.Point(0, 0),
       topIndex: 0,
-      verticalTransform: 0
+      verticalTransform: 0,
+      window: {
+        height: 0,
+        width: 0
+      }
     };
   }
 
@@ -108,7 +112,7 @@ class Scrollable extends React.Component {
         deltaX: deltaScrolled.x,
         deltaY: deltaScrolled.y
       });
-    }), constants.ANIMATION_FPS_60, { leading: true });
+    }), constants.ANIMATION_FPS_120, { leading: true });
   }
 
   _onHorizontalScroll() {
@@ -212,9 +216,11 @@ class Scrollable extends React.Component {
       gutterConfig,
       gutterConfig: {
         left: {
+          handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
           width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
         } = {},
         right: {
+          handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
           width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
         } = {}
       } = {},
@@ -238,11 +244,12 @@ class Scrollable extends React.Component {
       verticalTransform
     } = this.state;
 
+    // rows
+    const contentWidthStyle = {
+      width: `calc(100% - ${scrollbarWidth}px)`
+    };
     const withHorizontalScrolling = !!horizontalScrollConfig;
     const offset = verticalTransform % (rowHeight * offsetBuffer);
-    const scrollbarHeightStyle = {
-      height: `${rowHeight * rows.length}px`
-    };
     const translateStyle = {
       transform: `translate3d(-0px, -${offset}px, 0px)`
     };
@@ -267,34 +274,63 @@ class Scrollable extends React.Component {
       </div>
     ));
 
+    // corner
+    const cornerStyle = {
+      height: `${scrollbarHeight}px`,
+      width: `${scrollbarWidth}px`
+    };
+    const corner = <div className='scrollable__corner' style={cornerStyle} />;
+
+    // horizontal scrollbar
+    const horizontalScrollbarContainerHeight = {
+      height: `${scrollbarHeight}px`
+    };
+    const horizontalScrollbarWidth = _.sum([
+      contentWidth,
+      leftGutterWidth,
+      leftHandleWidth,
+      rightHandleWidth,
+      rightGutterWidth
+    ]);
+    const scrollbarWidthStyle = { height: '1px', width: `${horizontalScrollbarWidth}px` };
+    const horizontalScrollbar = withHorizontalScrolling ? (
+      <div className='scrollable__bottom-wrapper' style={horizontalScrollbarContainerHeight}>
+        <div
+          className='scrollable__horizontal-scrollbar'
+          key='scrollable'
+          onScroll={this._onHorizontalScroll}
+          ref='horizontalScrollbar'
+          style={horizontalScrollbarContainerHeight}
+        >
+          <div style={scrollbarWidthStyle} />
+        </div>
+        {corner}
+      </div>
+    ) : undefined;
+
+    // vertical scrollbar
+    const scrollbarHeightStyle = {
+      height: `${rowHeight * rows.length}px`
+    };
     const verticalScrollbarContainerWidth = {
       minWidth: `${scrollbarWidth}px`
     };
-    const horizontalScrollbarContainerHeight = {
-      minHeight: `${scrollbarHeight}px`
-    };
-    const contentWidthStyle = {
-      width: `calc(100% - ${scrollbarWidth}px)`
-    };
-
-    const scrollbarWidthStyle = { height: '1px', width: `${contentWidth + leftGutterWidth + rightGutterWidth}px` };
-    const horizontalScrollbar = withHorizontalScrolling ? (
+    const verticalScrollbar = (
       <div
-        className='scrollable__horizontal-scrollbar'
-        key='scrollable'
-        onScroll={this._onHorizontalScroll}
-        ref='horizontalScrollbar'
-        style={horizontalScrollbarContainerHeight}
+        className='scrollable__vertical-scrollbar'
+        onScroll={this._onVerticalScroll}
+        ref='verticalScrollbar'
+        style={verticalScrollbarContainerWidth}
       >
-        <div style={scrollbarWidthStyle} />
+        <div style={scrollbarHeightStyle} />
       </div>
-    ) : undefined;
+    );
 
     return (
       <div className={classnames('scrollable', { ['scrollable--performing']: performing })} ref='scrollable'>
         <div
-          className='scrollable__content-wrapper'
-          key='content-wrapper'
+          className='scrollable__top-wrapper'
+          key='top-wrapper'
           onMouseMove={this._onResize}
           onMouseUp={this._stopResize}
           onWheel={this._onMouseWheel}
@@ -302,14 +338,7 @@ class Scrollable extends React.Component {
           <div className='scrollable__contents' key='contents' style={contentWidthStyle}>
             {showRows}
           </div>
-          <div
-            className='scrollable__vertical-scrollbar'
-            onScroll={this._onVerticalScroll}
-            ref='verticalScrollbar'
-            style={verticalScrollbarContainerWidth}
-          >
-            <div style={scrollbarHeightStyle} />
-          </div>
+          {verticalScrollbar}
         </div>
         {horizontalScrollbar}
       </div>

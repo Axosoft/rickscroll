@@ -1,5 +1,5 @@
 module.exports = {
-  ANIMATION_FPS_60: 1000 / 60,
+  ANIMATION_FPS_120: 1000 / 120,
   handleClass: {
     LEFT: 'left',
     RIGHT: 'right'

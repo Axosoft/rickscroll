@@ -14,7 +14,7 @@
   user-select: none;
 }
 
-.scrollable .scrollable__content-wrapper {
+.scrollable .scrollable__top-wrapper {
   width: 100%;
   height: 100%;
   display: flex;
@@ -26,13 +26,21 @@
 }
 
 .scrollable .scrollable__vertical-scrollbar {
+  overflow-x: hidden;
   overflow-y: scroll;
   z-index: 2;
 }
 
-.scrollable .scrollable__horizontal-scrollbar {
-  overflow-x: scroll;
+.scrollable .scrollable__bottom-wrapper {
+  display: flex;
+  flex-direction: row;
   z-index: 2;
+}
+
+.scrollable .scrollable__horizontal-scrollbar {
+  width: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden;
 }
 
 .scrollable .scrollable__row {
