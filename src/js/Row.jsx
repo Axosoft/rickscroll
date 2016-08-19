@@ -3,8 +3,8 @@ const { PropTypes: types } = React;
 const classnames = require('classnames');
 const _ = require('lodash');
 
-const constants = require('../constants');
-const utils = require('../utils');
+const constants = require('./constants');
+const utils = require('./utils');
 
 class Row extends React.Component {
   constructor(props) {
@@ -18,9 +18,9 @@ class Row extends React.Component {
   }
 
   _getRenderableGutter(side, index, { componentClass: ComponentClass } = {}, width) {
-    const widthStyle = utils.getWidthStyle(width);
-    return ComponentClass && widthStyle ?
-      <span className='scrollable__gutter' style={widthStyle}><ComponentClass key={`gutter-${side}`} /></span> :
+    const gutterStyle = utils.getWidthStyle(width);
+    return ComponentClass && gutterStyle ?
+      <span className='scrollable__gutter' style={gutterStyle}><ComponentClass key={`gutter-${side}`} /></span> :
       undefined;
   }
 
@@ -33,19 +33,19 @@ class Row extends React.Component {
       },
       onStartResize = (() => () => {})
     } = this.props;
-    const widthStyle = utils.getWidthStyle(width);
+    const handleStyle = utils.getWidthStyle(width);
     const className = classnames(
       handleClassName,
       'scrollable__handle',
       { 'scrollable__handle--grabbable': !!onGutterResize },
       `scrollable__handle--${side}`
     );
-    return widthStyle ? (
+    return handleStyle ? (
       <span
         className={className}
         key={`handle-${side}`}
         onMouseDown={onStartResize(side)}
-        style={widthStyle}
+        style={handleStyle}
       />
     ) : undefined;
   }
@@ -68,7 +68,7 @@ class Row extends React.Component {
       index,
       rowHeight
     } = this.props;
-    const heightStyle = {
+    const rowStyle = {
       height: `${rowHeight}px`
     };
 
@@ -99,7 +99,7 @@ class Row extends React.Component {
       <ContentComponent />;
 
     return (
-      <div className='scrollable__row' style={heightStyle}>
+      <div className='scrollable__row' style={rowStyle}>
         {leftComponent}
         {leftHandleComponent}
         <span className='scrollable__content' key='content-wrapper'>{contentComponent}</span>

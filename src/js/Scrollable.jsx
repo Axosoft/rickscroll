@@ -1,5 +1,4 @@
 const React = require('react');
-require('../../../static/css/scrollable');
 const classnames = require('classnames');
 const { AnimationTimer } = require('animation-timer');
 const { Easer } = require('functional-easing');
@@ -8,10 +7,9 @@ const { PropTypes: types } = React;
 const easer = new Easer()
   .using('out-cubic');
 
-const constants = require('../constants');
-const HorizontalWrapper = require('./HorizontalWrapper');
+const constants = require('./constants');
 const Row = require('./Row');
-const utils = require('../utils');
+const utils = require('./utils');
 
 class Scrollable extends React.Component {
   constructor(props) {
@@ -234,19 +232,19 @@ class Scrollable extends React.Component {
       }
     } = this;
 
-    const contentWidthStyle = shouldRender.verticalScrollbar ? {
+    const contentsStyle = shouldRender.verticalScrollbar ? {
       width: `calc(100% - ${scrollbarWidth}px)`
     } : undefined;
     const offset = verticalTransform % (rowHeight * buffers.offset);
-    const translateStyle = {
+    const partitionStyle = {
       transform: `translate3d(-0px, -${offset}px, 0px)`
     };
 
     const rowsWeWillRender = _.slice(rows, Math.min(topIndex, rows.length), topIndex + buffers.display);
     const partitionedRows = _.chunk(rowsWeWillRender, buffers.offset);
-    const renderedPartitions = partitionedRows.map((row, outerIndex) => (
-      <div key={outerIndex + (topIndex / buffers.offset)} style={translateStyle}>
-        {row.map(({ contentComponent, gutters }, innerIndex) => (
+    const renderedPartitions = _.map(partitionedRows, (row, outerIndex) => (
+      <div className='scrollable__partition' key={outerIndex + (topIndex / buffers.offset)} style={partitionStyle}>
+        {_.map(row, ({ contentComponent, gutters }, innerIndex) => (
           <Row
             contentComponent={contentComponent}
             gutterConfig={gutterConfig}
@@ -262,7 +260,7 @@ class Scrollable extends React.Component {
     ));
 
     return (
-      <div className='scrollable__contents' key='contents' style={contentWidthStyle}>
+      <div className='scrollable__contents' key='contents' style={contentsStyle}>
         {renderedPartitions}
       </div>
     );
@@ -313,22 +311,22 @@ class Scrollable extends React.Component {
       return null;
     }
 
-    const horizontalScrollbarContainerHeight = {
+    const sharedStyle = {
       height: `${scrollbarHeight}px`
     };
     const contentWidth = this._getContentWidth();
-    const scrollbarWidthStyle = { height: '1px', width: `${contentWidth}px` };
+    const fillerStyle = { height: '1px', width: `${contentWidth}px` };
 
     return (
-      <div className='scrollable__bottom-wrapper' style={horizontalScrollbarContainerHeight}>
+      <div className='scrollable__bottom-wrapper' style={sharedStyle}>
         <div
           className='scrollable__horizontal-scrollbar'
           key='scrollable'
           onScroll={this._onHorizontalScroll}
           ref='horizontalScrollbar'
-          style={horizontalScrollbarContainerHeight}
+          style={sharedStyle}
         >
-          <div style={scrollbarWidthStyle} />
+          <div style={fillerStyle} />
         </div>
         {this._renderCorner()}
       </div>
@@ -351,10 +349,11 @@ class Scrollable extends React.Component {
       return null;
     }
 
-    const scrollbarHeightStyle = {
-      height: `${rowHeight * rows.length}px`
+    const fillerStyle = {
+      height: `${rowHeight * rows.length}px`,
+      width: '1px'
     };
-    const verticalScrollbarContainerWidth = {
+    const verticalScrollbarStyle = {
       minWidth: `${scrollbarWidth}px`
     };
 
@@ -363,9 +362,9 @@ class Scrollable extends React.Component {
         className='scrollable__vertical-scrollbar'
         onScroll={this._onVerticalScroll}
         ref='verticalScrollbar'
-        style={verticalScrollbarContainerWidth}
+        style={verticalScrollbarStyle}
       >
-        <div style={scrollbarHeightStyle} />
+        <div style={fillerStyle} />
       </div>
     );
   }
@@ -491,8 +490,19 @@ class Scrollable extends React.Component {
 
   render() {
     const {
-      resize: { performing }
+      horizontalScrollConfig,
+      horizontalScrollConfig: {
+        scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
+      }
+    } = this.props;
+    const {
+      resize: { performing },
+      shouldRender
     } = this.state;
+
+    const topWrapperStyle = !!horizontalScrollConfig && shouldRender.horizontalScrollbar ? {
+      height: `calc(100% - ${scrollbarHeight}px)`
+    } : undefined;
 
     return (
       <div className={classnames('scrollable', { ['scrollable--performing-resize']: performing })} ref='scrollable'>
@@ -502,6 +512,7 @@ class Scrollable extends React.Component {
           onMouseMove={this._onResize}
           onMouseUp={this._stopResize}
           onWheel={this._onMouseWheel}
+          style={topWrapperStyle}
         >
           {this._renderContents()}
           {this._renderVerticalScrollbar()}
@@ -538,7 +549,5 @@ Scrollable.propTypes = {
     scrollbarWidth: types.number
   }).isRequired
 };
-
-Scrollable.HorizontalWrapper = HorizontalWrapper;
 
 module.exports = Scrollable;

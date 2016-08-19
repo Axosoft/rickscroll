@@ -2,6 +2,31 @@ const _ = require('lodash');
 
 const constants = require('./constants');
 
+class Point {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+  }
+
+  add(dPoint) {
+    this.x += dPoint.x;
+    this.y += dPoint.y;
+    return this;
+  }
+
+  sub(dPoint) {
+    this.x -= dPoint.x;
+    this.y -= dPoint.y;
+    return this;
+  }
+
+  scale(c) {
+    this.x *= c;
+    this.y *= c;
+    return this;
+  }
+}
+
 module.exports = {
   getMaxHeight(rowHeight, numRows, offsetHeight) {
     return (rowHeight * numRows) - offsetHeight;
@@ -30,28 +55,5 @@ module.exports = {
     return style;
   },
 
-  Point: class {
-    constructor(x, y) {
-      this.x = x;
-      this.y = y;
-    }
-
-    add(dPoint) {
-      this.x += dPoint.x;
-      this.y += dPoint.y;
-      return this;
-    }
-
-    sub(dPoint) {
-      this.x -= dPoint.x;
-      this.y -= dPoint.y;
-      return this;
-    }
-
-    scale(c) {
-      this.x *= c;
-      this.y *= c;
-      return this;
-    }
-  }
+  Point
 };

@@ -1,0 +1,51 @@
+{
+  "parser": "babel-eslint",
+  "ecmaFeatures": {
+    "jsx": true
+  },
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": "airbnb",
+  "plugins": [
+    "react"
+  ],
+  "rules": {
+    "camelcase": [
+      2,
+      {
+        "properties": "always"
+      }
+    ],
+    "array-bracket-spacing": 0,
+    "comma-dangle": [2, "never"],
+    "func-names": 0,
+    "indent": ["error", 2, { SwitchCase: 0 }],
+    "jsx-quotes": [2, "prefer-single"],
+    "max-len": [2, 120],
+    "new-cap": 0,
+    "no-mixed-spaces-and-tabs": 2,
+    "no-multi-spaces": 2,
+    "no-new": 2,
+    "no-param-reassign": ["error", { props: false }],
+    "no-trailing-spaces": 2,
+    "no-undef": 2,
+    "no-underscore-dangle": 0,
+    "no-unused-vars": 2,
+    "object-curly-spacing": 0,
+    "object-shorthand": [2, "always"],
+    "react/display-name": 2,
+    "react/prefer-stateless-function": 1,
+    "react/jsx-no-undef": 2,
+    "react/jsx-quotes": 0,
+    "react/sort-prop-types": 2,
+    "react/jsx-sort-props": 2,
+    "react/require-extension": 2,
+    "sort-vars": 2,
+    "space-before-function-paren": [2, "never"],
+    "space-in-parens": [2, "never"],
+    "space-unary-ops": [2, { "words": true, "nonwords": false }],
+    "vars-on-top": 0
+  }
+}
