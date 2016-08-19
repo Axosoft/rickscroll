@@ -96,7 +96,7 @@ class Scrollable extends React.Component {
 
     // vertical
     if (shouldRender.verticalScrollbar) {
-      const maxHeight = utils.getMaxHeight(rowHeight, rows.length, verticalScrollbar.offsetHeight);
+      const maxHeight = utils.getMaxHeight(rowHeight, rows.length, _verticalScrollbar.offsetHeight);
       const verticalTransform = this.state.verticalTransform + deltaY;
       _.assign(scrollChanges, utils.getScrollValues(verticalTransform, rowHeight, maxHeight, buffers.offset));
     }
@@ -106,16 +106,16 @@ class Scrollable extends React.Component {
       scrollChanges.horizontalTransform = _.clamp(
         this.state.horizontalTransform + deltaX,
         0,
-        horizontalScrollbar.scrollWidth - horizontalScrollbar.offsetWidth
+        _horizontalScrollbar.scrollWidth - _horizontalScrollbar.offsetWidth
       );
     }
 
     this.setState(scrollChanges, () => {
       if (shouldRender.verticalScrollbar) {
-        verticalScrollbar.scrollTop = scrollChanges.verticalTransform;
+        _verticalScrollbar.scrollTop = scrollChanges.verticalTransform;
       }
       if (withHorizontalScrolling) {
-        horizontalScrollbar.scrollLeft = scrollChanges.horizontalTransform;
+        _horizontalScrollbar.scrollLeft = scrollChanges.horizontalTransform;
       }
     });
   }
@@ -353,7 +353,7 @@ class Scrollable extends React.Component {
       minWidth: `${scrollbarWidth}px`
     };
 
-    const getVerticalScrollbarRef = r => { this.verticalScrollbar = r; };
+    const getVerticalScrollbarRef = r => { this._verticalScrollbar = r; };
 
     return (
       <div
