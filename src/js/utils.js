@@ -45,14 +45,10 @@ module.exports = {
   },
 
   getWidthStyle(width = 0) {
-    let style = undefined;
-    if (_.isNumber(width) && width > 0) {
-      style = _.assign(style, {
-        minWidth: `${width}px`,
-        width: `${width}px`
-      });
-    }
-    return style;
+    return _.isNumber(width) && width > 0 ? {
+      minWidth: `${width}px`,
+      width: `${width}px`
+    } : undefined;
   },
 
   Point

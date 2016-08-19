@@ -1,4 +1,6 @@
 const React = require('react');
+const _ = require('lodash');
+
 const { PropTypes: types } = React;
 
 class HorizontalWrapper extends React.Component {

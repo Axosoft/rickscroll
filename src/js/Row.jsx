@@ -1,10 +1,10 @@
-const React = require('react');
-const { PropTypes: types } = React;
 const classnames = require('classnames');
+const constants = require('./constants');
+const React = require('react');
+const utils = require('./utils');
 const _ = require('lodash');
 
-const constants = require('./constants');
-const utils = require('./utils');
+const { PropTypes: types } = React;
 
 class Row extends React.Component {
   constructor(props) {
