@@ -8,11 +8,19 @@
     "lint": "eslint --ext .jsx --ext .js src/js --quiet",
     "prepublish": "npm run compile"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/implausible/rickscroll.git"
+  },
   "files": [
     "lib"
   ],
   "author": "Tyler Wanek",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/implausible/rickscroll/issues"
+  },
+  "homepage": "https://github.com/implausible/rickscroll",
   "dependencies": {
     "animation-timer": "^1.0.12",
     "classnames": "^2.2.5",
@@ -35,5 +43,15 @@
   "peerDependencies": {
     "babel-polyfill": "^6.13.0",
     "react": "^15.1.0"
-  }
+  },
+  "keywords": [
+    "scrolling",
+    "scrollable",
+    "scroll",
+    "performance",
+    "optimized",
+    "gpu",
+    "translate3d",
+    "fast"
+  ]
 }
