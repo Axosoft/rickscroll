@@ -112,8 +112,8 @@ class Row extends React.Component {
 
 Row.propTypes = {
   contentComponent: utils.types.renderableComponent,
-  guttersConfig: utils.types.guttersConfig,
   gutters: utils.types.gutters,
+  guttersConfig: utils.types.guttersConfig,
   horizontalTransform: types.number,
   index: types.number.isRequired,
   onStartResize: types.func,

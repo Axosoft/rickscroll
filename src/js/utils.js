@@ -3,6 +3,26 @@ const _ = require('lodash');
 const constants = require('./constants');
 const types = require('./propTypes');
 
+function buildRowConfig(rowsOrList) {
+  if (rowsOrList[0] && rowsOrList[0].header) {
+    return _.reduce(rowsOrList, ({ contentHeight: prevHeight, headers, rows }, { headerComponent, height, list }) => {
+      let contentHeight = prevHeight;
+      headers.push({ index: rows.length, height });
+      contentHeight += height;
+      rows.push({ contentComponent: headerComponent, height });
+      rows.push(..._.map(list, row => {
+        contentHeight += row.height;
+        return row;
+      }));
+      return { contentHeight, headers, rows };
+    }, { contentHeight: 0, headers: [], rows: [] });
+  }
+
+  const contentHeight = _.reduce(rowsOrList, (prevHeight, row) => prevHeight + row.height, 0);
+
+  return { contentHeight, headers: null, rows: rowsOrList };
+}
+
 function getMaxHeight(rowHeight, numRows, offsetHeight) {
   return (rowHeight * numRows) - offsetHeight;
 }
@@ -27,6 +47,7 @@ function getWidthStyle(width = 0) {
 }
 
 module.exports = {
+  buildRowConfig,
   getMaxHeight,
   getResizeWidth,
   getScrollValues,

@@ -31,12 +31,17 @@ class Scrollable extends React.Component {
     this._startResize = this._startResize.bind(this);
     this._stopResize = this._stopResize.bind(this);
     this._updateDimensions = this._updateDimensions.bind(this);
+
+    const { contentHeight, headers, rows } = utils.buildRowConfig(this.props.list);
+
     this.state = {
       animation: null,
       buffers: {
         display: 60,
         offset: 6
       },
+      contentHeight,
+      headers,
       horizontalTransform: 0,
       resize: {
         baseWidth: 0,
@@ -45,6 +50,7 @@ class Scrollable extends React.Component {
         side: '',
         startingPosition: 0
       },
+      rows,
       scrollingToPosition: new Point(0, 0),
       shouldRender: {
         horizontalScrollbar: false,
@@ -63,10 +69,18 @@ class Scrollable extends React.Component {
     this._updateDimensions(this.props);
   }
 
-  componentWillReceiveProps({ scrollTo: nextScrollTo = {} }) {
-    const { scrollTo: prevScrollTo = {} } = this.props;
+  componentWillReceiveProps({ list: nextList, scrollTo: nextScrollTo = {} }) {
+    const {
+      list: prevList,
+      scrollTo: prevScrollTo = {}
+    } = this.props;
+
     if (!_.isEqual(prevScrollTo, nextScrollTo)) {
       this._scrollTo(nextScrollTo);
+    }
+
+    if (prevList !== nextList || !_.isEqual(prevList, nextList)) {
+      this.setState(utils.buildRowConfig(nextList));
     }
   }
 
@@ -84,10 +98,9 @@ class Scrollable extends React.Component {
         horizontalScrollConfig,
         verticalScrollConfig: {
           rowHeight
-        },
-        rows
+        }
       },
-      state: { buffers, shouldRender },
+      state: { buffers, rows, shouldRender },
       _horizontalScrollbar,
       _verticalScrollbar
     } = this;
@@ -196,10 +209,9 @@ class Scrollable extends React.Component {
   _onVerticalScroll() {
     const {
       props: {
-        verticalScrollConfig: { rowHeight },
-        rows
+        verticalScrollConfig: { rowHeight }
       },
-      state: { buffers },
+      state: { buffers, rows },
       _verticalScrollbar: { offsetHeight, scrollTop }
     } = this;
 
@@ -212,7 +224,6 @@ class Scrollable extends React.Component {
     const {
       props: {
         guttersConfig,
-        rows,
         verticalScrollConfig: {
           rowHeight,
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
@@ -221,6 +232,7 @@ class Scrollable extends React.Component {
       state: {
         buffers,
         horizontalTransform,
+        rows,
         shouldRender,
         topIndex,
         verticalTransform
@@ -242,8 +254,8 @@ class Scrollable extends React.Component {
         {_.map(row, ({ contentComponent, gutters }, innerIndex) => (
           <Row
             contentComponent={contentComponent}
-            guttersConfig={guttersConfig}
             gutters={gutters}
+            guttersConfig={guttersConfig}
             horizontalTransform={horizontalTransform}
             index={innerIndex}
             key={innerIndex}
@@ -333,13 +345,12 @@ class Scrollable extends React.Component {
   _renderVerticalScrollbar() {
     const {
       props: {
-        rows,
         verticalScrollConfig: {
           rowHeight,
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         }
       },
-      state: { shouldRender }
+      state: { rows, shouldRender }
     } = this;
 
     if (!shouldRender.verticalScrollbar) {
@@ -414,7 +425,7 @@ class Scrollable extends React.Component {
     });
   }
 
-  _updateDimensions(prevProps) {
+  _updateDimensions(prevProps, prevState) {
     const {
       props: {
         horizontalScrollConfig,
@@ -425,10 +436,10 @@ class Scrollable extends React.Component {
         verticalScrollConfig: {
           rowHeight,
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
-        },
-        rows
+        }
       },
       state: {
+        rows,
         window: { height, width }
       },
       _scrollable: { clientHeight, clientWidth }
@@ -445,7 +456,7 @@ class Scrollable extends React.Component {
       clientWidth === width &&
       _.isEqual(prevProps.horizontalScrollConfig, horizontalScrollConfig) &&
       _.isEqual(prevProps.verticalScrollConfig, verticalScrollConfig) &&
-      prevProps.rows.length === rows.length &&
+      _.get(prevState, 'rows.length') === rows.length &&
       _.every(gutter, gutterIsEqual)
     ) {
       return;
@@ -521,7 +532,7 @@ class Scrollable extends React.Component {
 Scrollable.propTypes = {
   guttersConfig: utils.types.guttersConfig,
   horizontalScrollConfig: utils.types.horizontalScrollConfig,
-  rows: types.arrayOf(types.oneOfType([utils.types.row])).isRequired,
+  list: types.arrayOf(utils.types.row).isRequired,
   scrollTo: utils.types.scrollTo,
   verticalScrollConfig: utils.types.verticalScrollConfig.isRequired
 };
