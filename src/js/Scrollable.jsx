@@ -123,7 +123,7 @@ class Scrollable extends React.Component {
   _getContentWidth() {
     const {
       props: {
-        gutterConfig: {
+        guttersConfig: {
           left: {
             handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
             width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
@@ -186,7 +186,7 @@ class Scrollable extends React.Component {
         minWidth,
         onGutterResize = (() => {})
       } = {}
-    } = this.props.gutterConfig;
+    } = this.props.guttersConfig;
     if (performing) {
       onGutterResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
     }
@@ -210,7 +210,7 @@ class Scrollable extends React.Component {
   _renderContents() {
     const {
       props: {
-        gutterConfig,
+        guttersConfig,
         rows,
         verticalScrollConfig: {
           rowHeight,
@@ -241,7 +241,7 @@ class Scrollable extends React.Component {
         {_.map(row, ({ contentComponent, gutters }, innerIndex) => (
           <Row
             contentComponent={contentComponent}
-            gutterConfig={gutterConfig}
+            guttersConfig={guttersConfig}
             gutters={gutters}
             horizontalTransform={horizontalTransform}
             index={innerIndex}
@@ -385,7 +385,7 @@ class Scrollable extends React.Component {
   _startResize(side) {
     return ({ clientX }) => {
       const {
-        gutterConfig: {
+        guttersConfig: {
           [side]: {
             width: baseWidth
           }
@@ -435,7 +435,7 @@ class Scrollable extends React.Component {
 
     const gutter = ['left', 'right'];
     const gutterIsEqual = side => {
-      const accessor = `gutterConfig.${side}`;
+      const accessor = `guttersConfig.${side}`;
       return _.isEqual(_.get(prevProps, accessor), _.get(this.props, accessor));
     };
 
@@ -518,30 +518,11 @@ class Scrollable extends React.Component {
 }
 
 Scrollable.propTypes = {
-  gutterConfig: types.shape({
-    left: types.shape({
-      handleWidth: types.number,
-      width: types.number
-    }),
-    onGutterResize: types.func,
-    right: types.shape({
-      handleWidth: types.number,
-      width: types.number
-    })
-  }),
-  horizontalScrollConfig: types.shape({
-    contentWidth: types.number.isRequired,
-    scrollbarHeight: types.number
-  }),
-  rows: types.array.isRequired,
-  scrollTo: types.shape({
-    x: types.number,
-    y: types.number
-  }),
-  verticalScrollConfig: types.shape({
-    rowHeight: types.number.isRequired,
-    scrollbarWidth: types.number
-  }).isRequired
+  guttersConfig: utils.types.guttersConfig,
+  horizontalScrollConfig: utils.types.horizontalScrollConfig,
+  rows: types.arrayOf(types.oneOfType([utils.types.row])).isRequired,
+  scrollTo: utils.types.scrollTo,
+  verticalScrollConfig: utils.types.verticalScrollConfig.isRequired
 };
 
 module.exports = Scrollable;

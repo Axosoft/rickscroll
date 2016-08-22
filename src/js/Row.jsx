@@ -26,7 +26,7 @@ class Row extends React.Component {
 
   _getRenderableHandle(side, { handleClassName } = {}, width) {
     const {
-      gutterConfig: {
+      guttersConfig: {
         [side]: {
           onGutterResize
         } = {}
@@ -53,7 +53,7 @@ class Row extends React.Component {
   render() {
     const {
       contentComponent: ContentComponent,
-      gutterConfig: {
+      guttersConfig: {
         left: {
           handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
           width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
@@ -111,28 +111,9 @@ class Row extends React.Component {
 }
 
 Row.propTypes = {
-  contentComponent: types.oneOfType([types.func, types.element]),
-  gutterConfig: types.shape({
-    left: types.shape({
-      handleWidth: types.number,
-      width: types.number
-    }),
-    onGutterResize: types.func,
-    right: types.shape({
-      handleWidth: types.number,
-      width: types.number
-    })
-  }),
-  gutters: types.shape({
-    left: types.shape({
-      componentClass: types.oneOfType([types.func, types.element]).isRequired,
-      handleClassName: types.string
-    }),
-    right: types.shape({
-      componentClass: types.oneOfType([types.func, types.element]).isRequired,
-      handleClassName: types.string
-    })
-  }),
+  contentComponent: utils.types.renderableComponent,
+  guttersConfig: utils.types.guttersConfig,
+  gutters: utils.types.gutters,
   horizontalTransform: types.number,
   index: types.number.isRequired,
   onStartResize: types.func,
