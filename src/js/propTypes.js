@@ -1,6 +1,7 @@
 const { PropTypes: types } = require('react');
 
 const renderableComponent = types.oneOfType([types.func, types.element]);
+
 const gutterConfig = types.shape({
   handleWidth: types.number,
   width: types.number

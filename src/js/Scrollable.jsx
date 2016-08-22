@@ -2,6 +2,7 @@ const { AnimationTimer } = require('animation-timer');
 const classnames = require('classnames');
 const constants = require('./constants');
 const { Easer } = require('functional-easing');
+const { Point } = require('./models');
 const React = require('react');
 const Row = require('./Row');
 const utils = require('./utils');
@@ -44,7 +45,7 @@ class Scrollable extends React.Component {
         side: '',
         startingPosition: 0
       },
-      scrollingToPosition: new utils.Point(0, 0),
+      scrollingToPosition: new Point(0, 0),
       shouldRender: {
         horizontalScrollbar: false,
         verticalScrollbar: false
@@ -150,15 +151,15 @@ class Scrollable extends React.Component {
   _getThrottledAnimationFrameFn(scrollTo) {
     const { horizontalTransform, verticalTransform } = this.state;
     const delta = _.clone(scrollTo)
-      .sub(new utils.Point(horizontalTransform, verticalTransform));
-    const transition = new utils.Point(0, 0);
+      .sub(new Point(horizontalTransform, verticalTransform));
+    const transition = new Point(0, 0);
 
     return _.throttle(easer(elapsedTime => {
       if (!_.isEqual(scrollTo, this.state.scrollingToPosition)) {
         return;
       }
 
-      const deltaScrolled = new utils.Point(delta.x, delta.y)
+      const deltaScrolled = new Point(delta.x, delta.y)
         .scale(elapsedTime)
         .sub(transition);
 
@@ -373,7 +374,7 @@ class Scrollable extends React.Component {
       animation.stop();
     }
 
-    const scrollingToPosition = new utils.Point(x, y);
+    const scrollingToPosition = new Point(x, y);
 
     animation = new AnimationTimer()
     .on('tick', this._getThrottledAnimationFrameFn(scrollingToPosition))
