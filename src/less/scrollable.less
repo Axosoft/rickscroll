@@ -27,6 +27,11 @@
   }
 
   &__contents {
+    position: relative;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
     width: 100%;
   }
 
@@ -72,5 +77,19 @@
     &--grabbable {
       cursor: col-resize;
     }
+  }
+
+  &__header {
+    position: absolute;
+    width: 100%;
+    z-index: 2;
+  }
+
+  &__partition {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
 }

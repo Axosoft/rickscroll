@@ -34,6 +34,14 @@ const row = types.shape({
   height: types.number.isRequired
 });
 
+const list = types.arrayOf(row);
+const listWithHeader = types.shape({
+  headerComponent: renderableComponent.isRequired,
+  height: types.number.isRequired,
+  rows: list.isRequired
+});
+const listOfLists = types.arrayOf(listWithHeader);
+
 const scrollTo = types.shape({
   x: types.number,
   y: types.number
@@ -48,6 +56,9 @@ module.exports = {
   gutters,
   guttersConfig,
   horizontalScrollConfig,
+  list,
+  listOfLists,
+  listWithHeader,
   renderableComponent,
   row,
   rowGutter,

@@ -230,6 +230,7 @@ class Scrollable extends React.Component {
       },
       state: {
         buffers,
+        headers,
         horizontalTransform,
         partitions,
         rows,
@@ -243,39 +244,73 @@ class Scrollable extends React.Component {
       width: `calc(100% - ${scrollbarWidth}px)`
     } : undefined;
 
-    const partitionOffset = partitions[topPartitionIndex];
-    const nextPartitionOffset = partitions[topPartitionIndex + 1];
-    const offset = verticalTransform % (nextPartitionOffset - partitionOffset);
-
-    const partitionStyle = {
-      transform: `translate3d(-0px, -${offset}px, 0px)`
-    };
-
     const weightedPartitionIndex = topPartitionIndex * buffers.offset;
     const startingRowIndex = Math.min(weightedPartitionIndex, rows.length);
     const endingRowIndex = weightedPartitionIndex + buffers.display;
 
     const rowsWeWillRender = _.slice(rows, startingRowIndex, endingRowIndex);
     const partitionedRows = _.chunk(rowsWeWillRender, buffers.offset);
-    const renderedPartitions = _.map(partitionedRows, (row, outerIndex) => (
-      <div className='scrollable__partition' key={outerIndex + topPartitionIndex} style={partitionStyle}>
-        {_.map(row, ({ contentComponent, gutters, height }, innerIndex) => (
+    const renderedPartitions = _.map(partitionedRows, (row, outerIndex) => {
+      const partitionIndex = outerIndex + topPartitionIndex;
+      const basePartitionOffset = partitions[partitionIndex];
+      const partitionStyle = {
+        transform: `translate3d(-0px, ${basePartitionOffset - verticalTransform}px, 0px)`
+      };
+
+      return (
+        <div className='scrollable__partition' key={partitionIndex} style={partitionStyle}>
+          {_.map(row, ({ contentComponent, gutters, height }, innerIndex) => (
+            <Row
+              contentComponent={contentComponent}
+              gutters={gutters}
+              guttersConfig={guttersConfig}
+              horizontalTransform={horizontalTransform}
+              index={innerIndex}
+              key={innerIndex}
+              onStartResize={this._startResize}
+              rowHeight={height}
+            />
+          ))}
+        </div>
+      );
+    });
+
+    let header;
+    if (headers) {
+      const { lockPosition: maxLockPosition } = headers[headers.length - 1];
+      const findNextHeaderIndex = _.findIndex(headers, ({ lockPosition }) => lockPosition > verticalTransform);
+      const nextHeaderIndex = findNextHeaderIndex === -1 ? headers.length : findNextHeaderIndex;
+      const headerIndex = nextHeaderIndex - 1;
+      const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
+
+      const { index: headerRowIndex } = headers[headerIndex];
+      const { contentComponent, height } = rows[headerRowIndex];
+
+      const headerStyle = {
+        height: `${height}px`,
+        transform: 'translate3d(0px, 0px, 0px)'
+      };
+      if (verticalTransform < maxLockPosition && verticalTransform >= lockPosition - height) {
+        const headerOffset = height - lockPosition - verticalTransform;
+        headerStyle.transform = `translate3d(0px, -${headerOffset}px, 0px)`;
+      }
+
+      header = (
+        <div className='scrollable__header' key={`header-${headerRowIndex}`} style={headerStyle}>
           <Row
             contentComponent={contentComponent}
-            gutters={gutters}
             guttersConfig={guttersConfig}
-            horizontalTransform={horizontalTransform}
-            index={innerIndex}
-            key={innerIndex}
-            onStartResize={this._startResize}
+            horizontalTransform={0}
+            index={headerRowIndex}
             rowHeight={height}
           />
-        ))}
-      </div>
-    ));
+        </div>
+      );
+    }
 
     return (
       <div className='scrollable__contents' key='contents' style={contentsStyle}>
+        {header}
         {renderedPartitions}
       </div>
     );
@@ -538,7 +573,7 @@ class Scrollable extends React.Component {
 Scrollable.propTypes = {
   guttersConfig: utils.types.guttersConfig,
   horizontalScrollConfig: utils.types.horizontalScrollConfig,
-  list: types.arrayOf(utils.types.row).isRequired,
+  list: types.oneOfType([utils.types.list, utils.types.listOfLists]).isRequired,
   scrollTo: utils.types.scrollTo,
   verticalScrollConfig: utils.types.verticalScrollConfig
 };

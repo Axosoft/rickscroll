@@ -24,7 +24,7 @@ class Row extends React.Component {
       undefined;
   }
 
-  _getRenderableHandle(side, { handleClassName } = {}, width) {
+  _getRenderableHandle(side, { componentClass, handleClassName } = {}, width) {
     const {
       guttersConfig: {
         [side]: {
@@ -40,7 +40,7 @@ class Row extends React.Component {
       { 'scrollable__handle--grabbable': !!onGutterResize },
       `scrollable__handle--${side}`
     );
-    return handleStyle ? (
+    return componentClass && handleStyle ? (
       <span
         className={className}
         key={`handle-${side}`}
@@ -63,7 +63,7 @@ class Row extends React.Component {
           width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
         } = {}
       } = {},
-      gutters,
+      gutters = {},
       horizontalTransform,
       index,
       rowHeight

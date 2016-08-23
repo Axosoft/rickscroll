@@ -18,8 +18,8 @@ function reduceRowsIntoRowConfig(
       partitions.push(contentHeight);
     }
 
+    headers.push({ index: outRows.length, height, lockPosition: contentHeight });
     contentHeight += height;
-    headers.push({ index: outRows.length, height });
     outRows.push({ contentComponent: headerComponent, height });
   }
 
@@ -45,7 +45,7 @@ function buildRowConfig(list, offsetBuffer) {
     return { contentHeight: 0, headers: null, partitions: [], rows: [] };
   }
 
-  if (list[0] && list[0].header) {
+  if (list[0] && list[0].headerComponent) {
     return _.reduce(list, reduceRowsIntoRowConfig, {
       contentHeight: 0,
       headers: [],
