@@ -3,12 +3,20 @@ const _ = require('lodash');
 const constants = require('./constants');
 const types = require('./propTypes');
 
-function reduceRowsIntoRowConfig(
-  { contentHeight: prevHeight, headers, offsetBuffer, offsetCount: prevOffset, partitions, rows: outRows },
-  { headerComponent, height, rows: inRows }
-) {
+function reduceRowsIntoRowConfig(prevState, { headerComponent, height, rows: inRows }) {
+  const {
+    adjustHeaderOffset,
+    contentHeight: prevHeight,
+    headers,
+    lockHeaders,
+    offsetBuffer,
+    offsetCount: prevOffset,
+    partitions,
+    rows: outRows
+  } = prevState;
   let contentHeight = prevHeight;
   let nextOffset = prevOffset;
+  let newHeaderOffset = adjustHeaderOffset;
 
   if (headerComponent) {
     nextOffset++;
@@ -18,7 +26,12 @@ function reduceRowsIntoRowConfig(
       partitions.push(contentHeight);
     }
 
-    headers.push({ index: outRows.length, height, lockPosition: contentHeight });
+    headers.push({ index: outRows.length, height, lockPosition: contentHeight - adjustHeaderOffset });
+
+    if (lockHeaders) {
+      newHeaderOffset += height;
+    }
+
     contentHeight += height;
     outRows.push({ contentComponent: headerComponent, height });
   }
@@ -35,10 +48,19 @@ function reduceRowsIntoRowConfig(
     return row;
   }));
 
-  return { contentHeight, headers, offsetBuffer, offsetCount: nextOffset, partitions, rows: outRows };
+  return {
+    adjustHeaderOffset: newHeaderOffset,
+    contentHeight,
+    headers,
+    lockHeaders,
+    offsetBuffer,
+    offsetCount: nextOffset,
+    partitions,
+    rows: outRows
+  };
 }
 
-function buildRowConfig(list, offsetBuffer) {
+function buildRowConfig(list, offsetBuffer, lockHeaders) {
   const offsetCount = offsetBuffer - 1;
 
   if (list.length === 0) {
@@ -47,8 +69,10 @@ function buildRowConfig(list, offsetBuffer) {
 
   if (list[0] && list[0].headerComponent) {
     return _.reduce(list, reduceRowsIntoRowConfig, {
+      adjustHeaderOffset: 0,
       contentHeight: 0,
       headers: [],
+      lockHeaders,
       offsetBuffer,
       offsetCount,
       partitions: [],

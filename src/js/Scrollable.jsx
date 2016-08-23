@@ -33,7 +33,11 @@ class Scrollable extends React.Component {
     this._updateDimensions = this._updateDimensions.bind(this);
 
     const offset = 6;
-    const { contentHeight, headers, partitions, rows } = utils.buildRowConfig(this.props.list, offset);
+    const {
+      contentHeight,
+      headers,
+      partitions, rows
+    } = utils.buildRowConfig(this.props.list, offset, props.withLockingHeaders);
 
     this.state = {
       animation: null,
@@ -71,7 +75,7 @@ class Scrollable extends React.Component {
     this._updateDimensions(this.props);
   }
 
-  componentWillReceiveProps({ list: nextList, scrollTo: nextScrollTo = {} }) {
+  componentWillReceiveProps({ list: nextList, scrollTo: nextScrollTo = {}, withLockingHeaders }) {
     const {
       props: {
         list: prevList,
@@ -85,7 +89,12 @@ class Scrollable extends React.Component {
     }
 
     if (prevList !== nextList || !_.isEqual(prevList, nextList)) {
-      const { contentHeight, headers, partitions, rows } = utils.buildRowConfig(nextList, buffers.offset);
+      const {
+        contentHeight,
+        headers,
+        partitions,
+        rows
+      } = utils.buildRowConfig(nextList, buffers.offset, withLockingHeaders);
       this.setState({ contentHeight, headers, partitions, rows });
     }
   }
@@ -226,7 +235,8 @@ class Scrollable extends React.Component {
         guttersConfig,
         verticalScrollConfig: {
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
-        } = {}
+        } = {},
+        withLockingHeaders
       },
       state: {
         buffers,
@@ -280,32 +290,55 @@ class Scrollable extends React.Component {
       const { lockPosition: maxLockPosition } = headers[headers.length - 1];
       const findNextHeaderIndex = _.findIndex(headers, ({ lockPosition }) => lockPosition > verticalTransform);
       const nextHeaderIndex = findNextHeaderIndex === -1 ? headers.length : findNextHeaderIndex;
-      const headerIndex = nextHeaderIndex - 1;
-      const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
 
-      const { index: headerRowIndex } = headers[headerIndex];
-      const { contentComponent, height } = rows[headerRowIndex];
+      if (withLockingHeaders) {
+        header = (
+          <div className='scrollable__header' key='header'>
+            {_.times(nextHeaderIndex, headerIndex => {
+              const { index: headerRowIndex } = headers[headerIndex];
+              const { contentComponent, height } = rows[headerRowIndex];
 
-      const headerStyle = {
-        height: `${height}px`,
-        transform: 'translate3d(0px, 0px, 0px)'
-      };
-      if (verticalTransform < maxLockPosition && verticalTransform >= lockPosition - height) {
-        const headerOffset = height - lockPosition - verticalTransform;
-        headerStyle.transform = `translate3d(0px, -${headerOffset}px, 0px)`;
+              return (
+                <Row
+                  contentComponent={contentComponent}
+                  guttersConfig={guttersConfig}
+                  horizontalTransform={0}
+                  index={headerRowIndex}
+                  key={headerIndex}
+                  rowHeight={height}
+                />
+              );
+            })}
+          </div>
+        );
+      } else {
+        const headerIndex = nextHeaderIndex - 1;
+        const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
+
+        const { index: headerRowIndex } = headers[headerIndex];
+        const { contentComponent, height } = rows[headerRowIndex];
+
+        const headerStyle = {
+          height: `${height}px`,
+          transform: 'translate3d(0px, 0px, 0px)'
+        };
+        if (verticalTransform < maxLockPosition && verticalTransform >= lockPosition - height) {
+          const headerOffset = height - lockPosition - verticalTransform;
+          headerStyle.transform = `translate3d(0px, -${headerOffset}px, 0px)`;
+        }
+
+        header = (
+          <div className='scrollable__header' key={`header-${headerRowIndex}`} style={headerStyle}>
+            <Row
+              contentComponent={contentComponent}
+              guttersConfig={guttersConfig}
+              horizontalTransform={0}
+              index={headerRowIndex}
+              rowHeight={height}
+            />
+          </div>
+        );
       }
-
-      header = (
-        <div className='scrollable__header' key={`header-${headerRowIndex}`} style={headerStyle}>
-          <Row
-            contentComponent={contentComponent}
-            guttersConfig={guttersConfig}
-            horizontalTransform={0}
-            index={headerRowIndex}
-            rowHeight={height}
-          />
-        </div>
-      );
     }
 
     return (
@@ -575,7 +608,8 @@ Scrollable.propTypes = {
   horizontalScrollConfig: utils.types.horizontalScrollConfig,
   list: types.oneOfType([utils.types.list, utils.types.listOfLists]).isRequired,
   scrollTo: utils.types.scrollTo,
-  verticalScrollConfig: utils.types.verticalScrollConfig
+  verticalScrollConfig: utils.types.verticalScrollConfig,
+  withLockingHeaders: types.bool
 };
 
 module.exports = Scrollable;
