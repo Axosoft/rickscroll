@@ -26,7 +26,13 @@ function reduceRowsIntoRowConfig(prevState, { headerComponent, height, rows: inR
       partitions.push(contentHeight);
     }
 
-    headers.push({ index: outRows.length, height, lockPosition: contentHeight - adjustHeaderOffset });
+    headers.push({
+      adjustHeaderOffset,
+      index: outRows.length,
+      height,
+      lockPosition: contentHeight - adjustHeaderOffset,
+      realOffset: contentHeight
+    });
 
     if (lockHeaders) {
       newHeaderOffset += height;
