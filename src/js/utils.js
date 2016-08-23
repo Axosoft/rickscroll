@@ -3,28 +3,66 @@ const _ = require('lodash');
 const constants = require('./constants');
 const types = require('./propTypes');
 
-function buildRowConfig(rowsOrList) {
-  if (rowsOrList[0] && rowsOrList[0].header) {
-    return _.reduce(rowsOrList, ({ contentHeight: prevHeight, headers, rows }, { headerComponent, height, list }) => {
-      let contentHeight = prevHeight;
-      headers.push({ index: rows.length, height });
-      contentHeight += height;
-      rows.push({ contentComponent: headerComponent, height });
-      rows.push(..._.map(list, row => {
-        contentHeight += row.height;
-        return row;
-      }));
-      return { contentHeight, headers, rows };
-    }, { contentHeight: 0, headers: [], rows: [] });
+function reduceRowsIntoRowConfig(
+  { contentHeight: prevHeight, headers, offsetBuffer, offsetCount: prevOffset, partitions, rows: outRows },
+  { headerComponent, height, rows: inRows }
+) {
+  let contentHeight = prevHeight;
+  let nextOffset = prevOffset;
+
+  if (headerComponent) {
+    nextOffset++;
+    nextOffset %= offsetBuffer;
+
+    if (nextOffset === 0) {
+      partitions.push(contentHeight);
+    }
+
+    contentHeight += height;
+    headers.push({ index: outRows.length, height });
+    outRows.push({ contentComponent: headerComponent, height });
   }
 
-  const contentHeight = _.reduce(rowsOrList, (prevHeight, row) => prevHeight + row.height, 0);
+  outRows.push(..._.map(inRows, row => {
+    nextOffset++;
+    nextOffset %= offsetBuffer;
 
-  return { contentHeight, headers: null, rows: rowsOrList };
+    if (nextOffset === 0) {
+      partitions.push(contentHeight);
+    }
+
+    contentHeight += row.height;
+    return row;
+  }));
+
+  return { contentHeight, headers, offsetBuffer, offsetCount: nextOffset, partitions, rows: outRows };
 }
 
-function getMaxHeight(rowHeight, numRows, offsetHeight) {
-  return (rowHeight * numRows) - offsetHeight;
+function buildRowConfig(list, offsetBuffer) {
+  const offsetCount = offsetBuffer - 1;
+  if (list[0] && list[0].header) {
+    return _.reduce(list, reduceRowsIntoRowConfig, {
+      contentHeight: 0,
+      headers: [],
+      offsetBuffer,
+      offsetCount,
+      partitions: [],
+      rows: []
+    });
+  }
+
+  return _.reduce([{ rows: list }], reduceRowsIntoRowConfig, {
+    contentHeight: 0,
+    headers: null,
+    offsetBuffer,
+    offsetCount,
+    partitions: [],
+    rows: []
+  });
+}
+
+function getMaxHeight(contentHeight, offsetHeight) {
+  return contentHeight - offsetHeight;
 }
 
 function getResizeWidth(side, minWidth = 0, baseWidth, startingPosition, currentPosition) {
@@ -33,10 +71,12 @@ function getResizeWidth(side, minWidth = 0, baseWidth, startingPosition, current
   return Math.max(minWidth, baseWidth + (modifier * deltaWidth));
 }
 
-function getScrollValues(preClampTransform, rowHeight, maxHeight, offsetBuffer) {
+function getScrollValues(preClampTransform, maxHeight, partitions) {
   const verticalTransform = _.clamp(preClampTransform, 0, maxHeight);
-  const topIndex = _.floor(verticalTransform / (rowHeight * offsetBuffer)) * offsetBuffer;
-  return { topIndex, verticalTransform };
+  const topPartitionIndex = _.findIndex(
+    partitions, partitionStartingIndex => partitionStartingIndex > verticalTransform
+  ) - 1;
+  return { topPartitionIndex, verticalTransform };
 }
 
 function getWidthStyle(width = 0) {

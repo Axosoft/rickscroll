@@ -30,7 +30,8 @@ const gutters = types.shape({
 
 const row = types.shape({
   contentComponent: renderableComponent.isRequired,
-  gutters
+  gutters,
+  height: types.number.isRequired
 });
 
 const scrollTo = types.shape({
@@ -39,7 +40,6 @@ const scrollTo = types.shape({
 });
 
 const verticalScrollConfig = types.shape({
-  rowHeight: types.number.isRequired,
   scrollbarWidth: types.number
 });
 

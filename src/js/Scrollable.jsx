@@ -32,17 +32,19 @@ class Scrollable extends React.Component {
     this._stopResize = this._stopResize.bind(this);
     this._updateDimensions = this._updateDimensions.bind(this);
 
-    const { contentHeight, headers, rows } = utils.buildRowConfig(this.props.list);
+    const offset = 6;
+    const { contentHeight, headers, partitions, rows } = utils.buildRowConfig(this.props.list, offset);
 
     this.state = {
       animation: null,
       buffers: {
         display: 60,
-        offset: 6
+        offset
       },
       contentHeight,
       headers,
       horizontalTransform: 0,
+      partitions,
       resize: {
         baseWidth: 0,
         currentPosition: 0,
@@ -56,7 +58,7 @@ class Scrollable extends React.Component {
         horizontalScrollbar: false,
         verticalScrollbar: false
       },
-      topIndex: 0,
+      topPartitionIndex: 0,
       verticalTransform: 0,
       window: {
         height: 0,
@@ -71,16 +73,20 @@ class Scrollable extends React.Component {
 
   componentWillReceiveProps({ list: nextList, scrollTo: nextScrollTo = {} }) {
     const {
-      list: prevList,
-      scrollTo: prevScrollTo = {}
-    } = this.props;
+      props: {
+        list: prevList,
+        scrollTo: prevScrollTo = {}
+      },
+      state: { buffers }
+    } = this;
 
     if (!_.isEqual(prevScrollTo, nextScrollTo)) {
       this._scrollTo(nextScrollTo);
     }
 
     if (prevList !== nextList || !_.isEqual(prevList, nextList)) {
-      this.setState(utils.buildRowConfig(nextList));
+      const { contentHeight, headers, partitions, rows } = utils.buildRowConfig(nextList, buffers.offset);
+      this.setState({ contentHeight, headers, partitions, rows });
     }
   }
 
@@ -95,12 +101,9 @@ class Scrollable extends React.Component {
   _applyScrollChange({ deltaX, deltaY }) {
     const {
       props: {
-        horizontalScrollConfig,
-        verticalScrollConfig: {
-          rowHeight
-        }
+        horizontalScrollConfig
       },
-      state: { buffers, rows, shouldRender },
+      state: { contentHeight, partitions, shouldRender },
       _horizontalScrollbar,
       _verticalScrollbar
     } = this;
@@ -110,9 +113,9 @@ class Scrollable extends React.Component {
 
     // vertical
     if (shouldRender.verticalScrollbar) {
-      const maxHeight = utils.getMaxHeight(rowHeight, rows.length, _verticalScrollbar.offsetHeight);
+      const maxHeight = utils.getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
       const verticalTransform = this.state.verticalTransform + deltaY;
-      _.assign(scrollChanges, utils.getScrollValues(verticalTransform, rowHeight, maxHeight, buffers.offset));
+      _.assign(scrollChanges, utils.getScrollValues(verticalTransform, maxHeight, partitions));
     }
 
     // horizontal scrolling
@@ -208,16 +211,13 @@ class Scrollable extends React.Component {
 
   _onVerticalScroll() {
     const {
-      props: {
-        verticalScrollConfig: { rowHeight }
-      },
-      state: { buffers, rows },
+      state: { contentHeight, partitions },
       _verticalScrollbar: { offsetHeight, scrollTop }
     } = this;
 
-    const maxHeight = utils.getMaxHeight(rowHeight, rows.length, offsetHeight);
+    const maxHeight = utils.getMaxHeight(contentHeight, offsetHeight);
 
-    this.setState(utils.getScrollValues(scrollTop, rowHeight, maxHeight, buffers.offset));
+    this.setState(utils.getScrollValues(scrollTop, maxHeight, partitions));
   }
 
   _renderContents() {
@@ -225,16 +225,16 @@ class Scrollable extends React.Component {
       props: {
         guttersConfig,
         verticalScrollConfig: {
-          rowHeight,
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         }
       },
       state: {
         buffers,
         horizontalTransform,
+        partitions,
         rows,
         shouldRender,
-        topIndex,
+        topPartitionIndex,
         verticalTransform
       }
     } = this;
@@ -242,16 +242,24 @@ class Scrollable extends React.Component {
     const contentsStyle = shouldRender.verticalScrollbar ? {
       width: `calc(100% - ${scrollbarWidth}px)`
     } : undefined;
-    const offset = verticalTransform % (rowHeight * buffers.offset);
+
+    const partitionOffset = partitions[topPartitionIndex];
+    const nextPartitionOffset = partitions[topPartitionIndex + 1];
+    const offset = verticalTransform % (nextPartitionOffset - partitionOffset);
+
     const partitionStyle = {
       transform: `translate3d(-0px, -${offset}px, 0px)`
     };
 
-    const rowsWeWillRender = _.slice(rows, Math.min(topIndex, rows.length), topIndex + buffers.display);
+    const weightedPartitionIndex = topPartitionIndex * buffers.offset;
+    const startingRowIndex = Math.min(weightedPartitionIndex, rows.length);
+    const endingRowIndex = weightedPartitionIndex + buffers.display;
+
+    const rowsWeWillRender = _.slice(rows, startingRowIndex, endingRowIndex);
     const partitionedRows = _.chunk(rowsWeWillRender, buffers.offset);
     const renderedPartitions = _.map(partitionedRows, (row, outerIndex) => (
-      <div className='scrollable__partition' key={outerIndex + (topIndex / buffers.offset)} style={partitionStyle}>
-        {_.map(row, ({ contentComponent, gutters }, innerIndex) => (
+      <div className='scrollable__partition' key={outerIndex + topPartitionIndex} style={partitionStyle}>
+        {_.map(row, ({ contentComponent, gutters, height }, innerIndex) => (
           <Row
             contentComponent={contentComponent}
             gutters={gutters}
@@ -260,7 +268,7 @@ class Scrollable extends React.Component {
             index={innerIndex}
             key={innerIndex}
             onStartResize={this._startResize}
-            rowHeight={rowHeight}
+            rowHeight={height}
           />
         ))}
       </div>
@@ -346,11 +354,10 @@ class Scrollable extends React.Component {
     const {
       props: {
         verticalScrollConfig: {
-          rowHeight,
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         }
       },
-      state: { rows, shouldRender }
+      state: { contentHeight, shouldRender }
     } = this;
 
     if (!shouldRender.verticalScrollbar) {
@@ -358,7 +365,7 @@ class Scrollable extends React.Component {
     }
 
     const fillerStyle = {
-      height: `${rowHeight * rows.length}px`,
+      height: `${contentHeight}px`,
       width: '1px'
     };
     const verticalScrollbarStyle = {
@@ -434,11 +441,11 @@ class Scrollable extends React.Component {
         } = {},
         verticalScrollConfig,
         verticalScrollConfig: {
-          rowHeight,
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         }
       },
       state: {
+        contentHeight,
         rows,
         window: { height, width }
       },
@@ -462,7 +469,6 @@ class Scrollable extends React.Component {
       return;
     }
 
-    const contentHeight = rows.length * rowHeight;
     const clientHeightTooSmall = clientHeight < contentHeight;
     const clientHeightTooSmallWithHorizontalScrollbar = clientHeight < (contentHeight + scrollbarHeight);
 
