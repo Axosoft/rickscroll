@@ -40,6 +40,11 @@ function reduceRowsIntoRowConfig(
 
 function buildRowConfig(list, offsetBuffer) {
   const offsetCount = offsetBuffer - 1;
+
+  if (list.length === 0) {
+    return { contentHeight: 0, headers: null, partitions: [], rows: [] };
+  }
+
   if (list[0] && list[0].header) {
     return _.reduce(list, reduceRowsIntoRowConfig, {
       contentHeight: 0,

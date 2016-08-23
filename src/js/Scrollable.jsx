@@ -226,7 +226,7 @@ class Scrollable extends React.Component {
         guttersConfig,
         verticalScrollConfig: {
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
-        }
+        } = {}
       },
       state: {
         buffers,
@@ -290,7 +290,7 @@ class Scrollable extends React.Component {
         } = {},
         verticalScrollConfig: {
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
-        }
+        } = {}
       },
       state: { shouldRender }
     } = this;
@@ -355,7 +355,7 @@ class Scrollable extends React.Component {
       props: {
         verticalScrollConfig: {
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
-        }
+        } = {}
       },
       state: { contentHeight, shouldRender }
     } = this;
@@ -442,7 +442,7 @@ class Scrollable extends React.Component {
         verticalScrollConfig,
         verticalScrollConfig: {
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
-        }
+        } = {}
       },
       state: {
         contentHeight,
@@ -540,7 +540,7 @@ Scrollable.propTypes = {
   horizontalScrollConfig: utils.types.horizontalScrollConfig,
   list: types.arrayOf(utils.types.row).isRequired,
   scrollTo: utils.types.scrollTo,
-  verticalScrollConfig: utils.types.verticalScrollConfig.isRequired
+  verticalScrollConfig: utils.types.verticalScrollConfig
 };
 
 module.exports = Scrollable;
