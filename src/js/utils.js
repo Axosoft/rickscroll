@@ -73,8 +73,18 @@ function buildRowConfig(list, offsetBuffer, lockHeaders) {
     return { contentHeight: 0, headers: null, partitions: [], rows: [] };
   }
 
+  function avgRowHeight(config) {
+    const {
+      contentHeight,
+      rows: { length }
+    } = config;
+    return _.assign(config, {
+      avgRowHeight: length && _.ceil(contentHeight / length)
+    });
+  }
+
   if (list[0] && list[0].headerComponent) {
-    return _.reduce(list, reduceRowsIntoRowConfig, {
+    return avgRowHeight(_.reduce(list, reduceRowsIntoRowConfig, {
       adjustHeaderOffset: 0,
       contentHeight: 0,
       headers: [],
@@ -83,17 +93,17 @@ function buildRowConfig(list, offsetBuffer, lockHeaders) {
       offsetCount,
       partitions: [],
       rows: []
-    });
+    }));
   }
 
-  return _.reduce([{ rows: list }], reduceRowsIntoRowConfig, {
+  return avgRowHeight(_.reduce([{ rows: list }], reduceRowsIntoRowConfig, {
     contentHeight: 0,
     headers: null,
     offsetBuffer,
     offsetCount,
     partitions: [],
     rows: []
-  });
+  }));
 }
 
 function getMaxHeight(contentHeight, offsetHeight) {

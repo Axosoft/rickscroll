@@ -8,7 +8,6 @@ const Row = require('./Row');
 const utils = require('./utils');
 const _ = require('lodash');
 
-const { PropTypes: types } = React;
 const easer = new Easer()
   .using('out-cubic');
 
@@ -33,15 +32,21 @@ class Scrollable extends React.Component {
     this._stopResize = this._stopResize.bind(this);
     this._updateDimensions = this._updateDimensions.bind(this);
 
+    const { headerConfig = {} } = props;
+    const { list, lists } = props;
+    const listContainer = list || lists;
     const offset = 6;
     const {
+      avgRowHeight,
       contentHeight,
       headers,
-      partitions, rows
-    } = utils.buildRowConfig(this.props.list, offset, props.withLockingHeaders);
+      partitions,
+      rows
+    } = utils.buildRowConfig(listContainer, offset, headerConfig.lockHeaders);
 
     this.state = {
       animation: null,
+      avgRowHeight,
       buffers: {
         display: 60,
         offset
@@ -76,7 +81,7 @@ class Scrollable extends React.Component {
     this._updateDimensions(this.props);
   }
 
-  componentWillReceiveProps({ list: nextList, scrollTo: nextScrollTo = {}, withLockingHeaders }) {
+  componentWillReceiveProps({ list: nextList, scrollTo: nextScrollTo = {}, headerConfig = {} }) {
     const {
       props: {
         list: prevList,
@@ -91,12 +96,13 @@ class Scrollable extends React.Component {
 
     if (prevList !== nextList || !_.isEqual(prevList, nextList)) {
       const {
+        avgRowHeight,
         contentHeight,
         headers,
         partitions,
         rows
-      } = utils.buildRowConfig(nextList, buffers.offset, withLockingHeaders);
-      this.setState({ contentHeight, headers, partitions, rows });
+      } = utils.buildRowConfig(nextList, buffers.offset, headerConfig.lockHeaders);
+      this.setState({ avgRowHeight, contentHeight, headers, partitions, rows });
     }
   }
 
@@ -104,8 +110,8 @@ class Scrollable extends React.Component {
     return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
   }
 
-  componentDidUpdate(prevProps) {
-    this._updateDimensions(prevProps);
+  componentDidUpdate(prevProps, prevState) {
+    this._updateDimensions(prevProps, prevState);
   }
 
   _applyScrollChange({ deltaX, deltaY }) {
@@ -330,7 +336,9 @@ class Scrollable extends React.Component {
     const {
       props: {
         guttersConfig,
-        withLockingHeaders
+        headerConfig: {
+          lockHeaders
+        } = {}
       },
       state: {
         headers,
@@ -348,7 +356,7 @@ class Scrollable extends React.Component {
     const findNextHeaderIndex = _.findIndex(headers, ({ lockPosition }) => lockPosition > verticalTransform);
     const nextHeaderIndex = findNextHeaderIndex === -1 ? headers.length : findNextHeaderIndex;
 
-    if (withLockingHeaders) {
+    if (lockHeaders) {
       const topHeaderGutter = (
         <div className='scrollable__header-gutter scrollable__header-gutter--top' key='top-header-gutter'>
           {_.times(nextHeaderIndex, headerIndex => {
@@ -428,8 +436,10 @@ class Scrollable extends React.Component {
       height: `${height}px`,
       transform: 'translate3d(0px, 0px, 0px)'
     };
+
     if (verticalTransform < maxLockPosition && verticalTransform >= lockPosition - height) {
-      const headerOffset = height - lockPosition - verticalTransform;
+      const overlap = (lockPosition - verticalTransform);
+      const headerOffset = height - overlap;
       headerStyle.transform = `translate3d(0px, -${headerOffset}px, 0px)`;
     }
 
@@ -584,10 +594,13 @@ class Scrollable extends React.Component {
         } = {}
       },
       state: {
+        avgRowHeight,
+        buffers,
         contentHeight,
         rows,
         window: { height, width }
       },
+      _contents,
       _scrollable: { clientHeight, clientWidth }
     } = this;
 
@@ -597,9 +610,13 @@ class Scrollable extends React.Component {
       return _.isEqual(_.get(prevProps, accessor), _.get(this.props, accessor));
     };
 
+    const avgPartitionHeight = buffers.offset * avgRowHeight;
+    const numRowsInContents = _.ceil(_contents.clientHeight / avgRowHeight);
+
     if (
       clientHeight === height &&
       clientWidth === width &&
+      numRowsInContents + avgPartitionHeight <= buffers.display * avgRowHeight &&
       _.isEqual(prevProps.horizontalScrollConfig, horizontalScrollConfig) &&
       _.isEqual(prevProps.verticalScrollConfig, verticalScrollConfig) &&
       _.get(prevState, 'rows.length') === rows.length &&
@@ -622,7 +639,11 @@ class Scrollable extends React.Component {
       clientHeightTooSmall && clientWidthTooSmallWithVerticalScrollbar
     );
 
+    buffers.display = numRowsInContents + (2 * buffers.offset);
+    buffers.display += buffers.offset - (buffers.display % buffers.offset);
+
     this.setState({
+      buffers,
       shouldRender: {
         horizontalScrollbar: shouldRenderHorizontalScrollbar,
         verticalScrollbar: shouldRenderVerticalScrollbar
@@ -676,11 +697,12 @@ class Scrollable extends React.Component {
 
 Scrollable.propTypes = {
   guttersConfig: utils.types.guttersConfig,
+  headerConfig: utils.types.headerConfig,
   horizontalScrollConfig: utils.types.horizontalScrollConfig,
-  list: types.oneOfType([utils.types.list, utils.types.listOfLists]).isRequired,
+  list: utils.types.list,
+  lists: utils.types.lists,
   scrollTo: utils.types.scrollTo,
-  verticalScrollConfig: utils.types.verticalScrollConfig,
-  withLockingHeaders: types.bool
+  verticalScrollConfig: utils.types.verticalScrollConfig
 };
 
 module.exports = Scrollable;
