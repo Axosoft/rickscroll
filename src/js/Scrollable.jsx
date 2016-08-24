@@ -185,15 +185,36 @@ class Scrollable extends React.Component {
     const delta = _.clone(scrollTo)
       .sub(new Point(horizontalTransform, verticalTransform));
     const transition = new Point(0, 0);
+    const movingRight = delta.x >= 0;
+    const movingUp = delta.y <= 0;
 
     return _.throttle(easer(elapsedTime => {
-      if (!_.isEqual(scrollTo, this.state.scrollingToPosition)) {
+      const {
+        horizontalTransform: latestHorizontalTransform,
+        scrollingToPosition: latestScrollingToPosition,
+        verticalTransform: latestVerticalTransform
+      } = this.state;
+      if (!_.isEqual(scrollTo, latestScrollingToPosition)) {
         return;
       }
 
       const deltaScrolled = new Point(delta.x, delta.y)
         .scale(elapsedTime)
         .sub(transition);
+
+      if (
+        (movingRight && latestHorizontalTransform + deltaScrolled.x > scrollTo.x) ||
+        (!movingRight && latestHorizontalTransform + deltaScrolled.x < scrollTo.x)
+      ) {
+        deltaScrolled.x = 0;
+      }
+
+      if (
+        (movingUp && latestVerticalTransform + deltaScrolled.y < scrollTo.y) ||
+        (!movingUp && latestVerticalTransform + deltaScrolled.y > scrollTo.y)
+      ) {
+        deltaScrolled.y = 0;
+      }
 
       transition.add(deltaScrolled);
       this._applyScrollChange({
@@ -337,6 +358,7 @@ class Scrollable extends React.Component {
       props: {
         guttersConfig,
         headerConfig: {
+          clickToScroll,
           lockHeaders
         } = {}
       },
@@ -360,8 +382,9 @@ class Scrollable extends React.Component {
       const topHeaderGutter = (
         <div className='scrollable__header-gutter scrollable__header-gutter--top' key='top-header-gutter'>
           {_.times(nextHeaderIndex, headerIndex => {
-            const { index: headerRowIndex } = headers[headerIndex];
+            const { index: headerRowIndex, lockPosition } = headers[headerIndex];
             const { contentComponent, height } = rows[headerRowIndex];
+            const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
 
             return (
               <Row
@@ -370,6 +393,7 @@ class Scrollable extends React.Component {
                 horizontalTransform={0}
                 index={headerRowIndex}
                 key={headerIndex}
+                onClick={scrollTo}
                 rowHeight={height}
               />
             );
@@ -406,9 +430,10 @@ class Scrollable extends React.Component {
 
       const bottomHeaderGutter = (
         <div className='scrollable__header-gutter scrollable__header-gutter--bottom' key='bottom-header-gutter'>
-          {_(headers).slice(bottomGutterStartIndex).map(({ index: headerRowIndex }, index) => {
+          {_(headers).slice(bottomGutterStartIndex).map(({ index: headerRowIndex, lockPosition }, index) => {
             const headerIndex = nextHeaderIndex + index;
             const { contentComponent, height } = rows[headerRowIndex];
+            const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
             return (
               <Row
                 contentComponent={contentComponent}
@@ -416,6 +441,7 @@ class Scrollable extends React.Component {
                 horizontalTransform={0}
                 index={headerRowIndex}
                 key={headerIndex}
+                onClick={scrollTo}
                 rowHeight={height}
               />
             );
@@ -429,7 +455,7 @@ class Scrollable extends React.Component {
     const headerIndex = nextHeaderIndex - 1;
     const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
 
-    const { index: headerRowIndex } = headers[headerIndex];
+    const { index: headerRowIndex, lockPosition: scrollToPosition } = headers[headerIndex];
     const { contentComponent, height } = rows[headerRowIndex];
 
     const headerStyle = {
@@ -443,6 +469,8 @@ class Scrollable extends React.Component {
       headerStyle.transform = `translate3d(0px, -${headerOffset}px, 0px)`;
     }
 
+    const scrollTo = clickToScroll ? (() => this._scrollTo({ y: scrollToPosition })) : undefined;
+
     const header = (
       <div className='scrollable__header' key={`header-${headerRowIndex}`} style={headerStyle}>
         <Row
@@ -450,6 +478,7 @@ class Scrollable extends React.Component {
           guttersConfig={guttersConfig}
           horizontalTransform={0}
           index={headerRowIndex}
+          onClick={scrollTo}
           rowHeight={height}
         />
       </div>
@@ -544,8 +573,21 @@ class Scrollable extends React.Component {
     const scrollingToPosition = new Point(x, y);
 
     animation = new AnimationTimer()
-    .on('tick', this._getThrottledAnimationFrameFn(scrollingToPosition))
-    .play();
+      .on('tick', this._getThrottledAnimationFrameFn(scrollingToPosition))
+      .on('stop', () => {
+        const { horizontalTransform, scrollingToPosition: latestScrollingToPosition, verticalTransform } = this.state;
+        if (!_.isEqual(scrollingToPosition, latestScrollingToPosition)) {
+          return;
+        }
+
+        if (!_.isEqual(scrollingToPosition, new Point(horizontalTransform, verticalTransform))) {
+          const delta = _.clone(scrollingToPosition)
+            .sub(new Point(horizontalTransform, verticalTransform));
+
+          this._applyScrollChange({ deltaX: delta.x, deltaY: delta.y });
+        }
+      })
+      .play();
 
     this.setState({ animation, scrollingToPosition });
   }

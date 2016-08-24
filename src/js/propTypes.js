@@ -15,7 +15,7 @@ const guttersConfig = types.shape({
 });
 
 const headerConfig = types.shape({
-  clickHeadersToScroll: types.bool,
+  clickToScroll: types.bool,
   lockHeaders: types.bool
 });
 

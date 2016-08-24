@@ -66,6 +66,7 @@ class Row extends React.Component {
       gutters = {},
       horizontalTransform,
       index,
+      onClick,
       rowHeight
     } = this.props;
     const rowStyle = {
@@ -99,7 +100,7 @@ class Row extends React.Component {
       <ContentComponent />;
 
     return (
-      <div className='scrollable__row' style={rowStyle}>
+      <div className='scrollable__row' onClick={onClick} style={rowStyle}>
         {leftComponent}
         {leftHandleComponent}
         <span className='scrollable__content' key='content-wrapper'>{contentComponent}</span>
@@ -116,6 +117,7 @@ Row.propTypes = {
   guttersConfig: utils.types.guttersConfig,
   horizontalTransform: types.number,
   index: types.number.isRequired,
+  onClick: types.func,
   onStartResize: types.func,
   rowHeight: types.number.isRequired
 };
