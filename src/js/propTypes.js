@@ -5,6 +5,7 @@ const renderableComponent = types.oneOfType([types.func, types.element]);
 
 const gutterConfig = types.shape({
   handleWidth: types.number,
+  minWidth: types.number,
   width: types.number
 });
 

@@ -706,7 +706,7 @@ class Scrollable extends React.Component {
       horizontalScrollConfig,
       horizontalScrollConfig: {
         scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
-      }
+      } = {}
     } = this.props;
     const {
       resize: { performing },
