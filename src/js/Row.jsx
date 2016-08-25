@@ -17,11 +17,13 @@ class Row extends React.Component {
     return !_.isEqual(nextProps, this.props) || !_.isEqual(nextState, this.state);
   }
 
-  _getRenderableGutter(side, index, { componentClass: ComponentClass } = {}, width) {
+  _getRenderableGutter(side, index, { componentClass: ComponentClass, props = {} } = {}, width) {
     const gutterStyle = utils.getWidthStyle(width);
-    return ComponentClass && gutterStyle ?
-      <span className='scrollable__gutter' style={gutterStyle}><ComponentClass key={`gutter-${side}`} /></span> :
-      undefined;
+    return ComponentClass && gutterStyle ? (
+      <span className='scrollable__gutter' style={gutterStyle}>
+        <ComponentClass key={`gutter-${side}`} {...props} />
+      </span>
+    ) : undefined;
   }
 
   _getRenderableHandle(side, { componentClass, handleClassName } = {}, width) {
@@ -67,7 +69,8 @@ class Row extends React.Component {
       horizontalTransform,
       index,
       onClick,
-      rowHeight
+      rowHeight,
+      rowProps = {}
     } = this.props;
     const rowStyle = {
       height: `${rowHeight}px`
@@ -96,7 +99,7 @@ class Row extends React.Component {
       rightHandleWidth
     );
     const contentComponent = horizontalTransform !== undefined ?
-      <ContentComponent key='content' offset={horizontalTransform} /> :
+      <ContentComponent key='content' offset={horizontalTransform} {...rowProps} /> :
       <ContentComponent />;
 
     return (
@@ -119,7 +122,8 @@ Row.propTypes = {
   index: types.number.isRequired,
   onClick: types.func,
   onStartResize: types.func,
-  rowHeight: types.number.isRequired
+  rowHeight: types.number.isRequired,
+  rowProps: types.object
 };
 
 module.exports = Row;

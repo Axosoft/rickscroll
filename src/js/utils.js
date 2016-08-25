@@ -3,7 +3,7 @@ const _ = require('lodash');
 const constants = require('./constants');
 const types = require('./propTypes');
 
-function reduceRowsIntoRowConfig(prevState, { headerComponent, height, rows: inRows }) {
+function reduceRowsIntoRowConfig(prevState, { headerComponent, headerProps, height, rows: inRows }) {
   const {
     adjustHeaderOffset,
     contentHeight: prevHeight,
@@ -39,7 +39,7 @@ function reduceRowsIntoRowConfig(prevState, { headerComponent, height, rows: inR
     }
 
     contentHeight += height;
-    outRows.push({ contentComponent: headerComponent, height });
+    outRows.push({ contentComponent: headerComponent, height, props: headerProps });
   }
 
   outRows.push(..._.map(inRows, row => {

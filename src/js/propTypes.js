@@ -81,6 +81,10 @@ function validateGutter(props, side, location) {
     return new Error(`Invalid ${fullLocation} \`handleClassName\` supplied to \`Rickscroll\`.`);
   }
 
+  if (!_.isUndefined(gutterProp.props) && !_.isObject(gutterProp.props)) {
+    return new Error(`Invalid prop at ${location} \`props\` supplied to \`Rickscroll\`.`);
+  }
+
   return null;
 }
 
@@ -124,6 +128,10 @@ function validateRow(props, location) {
     return new Error(`Invalid prop at ${location} \`height\` supplied to \`Rickscroll\`.`);
   }
 
+  if (!_.isUndefined(props.props) && !_.isObject(props.props)) {
+    return new Error(`Invalid prop at ${location} \`props\` supplied to \`Rickscroll\`.`);
+  }
+
   return null;
 }
 
@@ -164,6 +172,10 @@ function lists(props) {
     let invalid = validateRenderable(listContainer, 'headerComponent', `lists[${containerIndex}]`);
     if (invalid) {
       return invalid;
+    }
+
+    if (!_.isUndefined(listContainer.headerProps) && !_.isObject(listContainer.headerProps)) {
+      return new Error(`Invalid prop at lists[${containerIndex}] \`headerProps\` supplied to \`Rickscroll\`.`);
     }
 
     if (!_.isNumber(listContainer.height)) {

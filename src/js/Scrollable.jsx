@@ -295,7 +295,7 @@ class Scrollable extends React.Component {
 
       return (
         <div className='scrollable__partition' key={partitionIndex} style={partitionStyle}>
-          {_.map(row, ({ contentComponent, gutters, height }, innerIndex) => (
+          {_.map(row, ({ contentComponent, gutters, height, props: rowProps }, innerIndex) => (
             <Row
               contentComponent={contentComponent}
               gutters={gutters}
@@ -305,6 +305,7 @@ class Scrollable extends React.Component {
               key={innerIndex}
               onStartResize={this._startResize}
               rowHeight={height}
+              rowProps={rowProps}
             />
           ))}
         </div>
@@ -383,7 +384,7 @@ class Scrollable extends React.Component {
         <div className='scrollable__header-gutter scrollable__header-gutter--top' key='top-header-gutter'>
           {_.times(nextHeaderIndex, headerIndex => {
             const { index: headerRowIndex, lockPosition } = headers[headerIndex];
-            const { contentComponent, height } = rows[headerRowIndex];
+            const { contentComponent, height, props: rowProps } = rows[headerRowIndex];
             const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
 
             return (
@@ -395,6 +396,7 @@ class Scrollable extends React.Component {
                 key={headerIndex}
                 onClick={scrollTo}
                 rowHeight={height}
+                rowProps={rowProps}
               />
             );
           })}
@@ -432,7 +434,7 @@ class Scrollable extends React.Component {
         <div className='scrollable__header-gutter scrollable__header-gutter--bottom' key='bottom-header-gutter'>
           {_(headers).slice(bottomGutterStartIndex).map(({ index: headerRowIndex, lockPosition }, index) => {
             const headerIndex = nextHeaderIndex + index;
-            const { contentComponent, height } = rows[headerRowIndex];
+            const { contentComponent, height, props: rowProps } = rows[headerRowIndex];
             const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
             return (
               <Row
@@ -443,6 +445,7 @@ class Scrollable extends React.Component {
                 key={headerIndex}
                 onClick={scrollTo}
                 rowHeight={height}
+                rowProps={rowProps}
               />
             );
           }).value()}
@@ -456,7 +459,7 @@ class Scrollable extends React.Component {
     const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
 
     const { index: headerRowIndex, lockPosition: scrollToPosition } = headers[headerIndex];
-    const { contentComponent, height } = rows[headerRowIndex];
+    const { contentComponent, height, props: rowProps } = rows[headerRowIndex];
 
     const headerStyle = {
       height: `${height}px`,
@@ -480,6 +483,7 @@ class Scrollable extends React.Component {
           index={headerRowIndex}
           onClick={scrollTo}
           rowHeight={height}
+          rowProps={rowProps}
         />
       </div>
     );
