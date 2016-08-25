@@ -20,7 +20,7 @@ class Row extends React.Component {
   _getRenderableGutter(side, index, { componentClass: ComponentClass, props = {} } = {}, width) {
     const gutterStyle = utils.getWidthStyle(width);
     return ComponentClass && gutterStyle ? (
-      <span className='scrollable__gutter' style={gutterStyle}>
+      <span className='rickscroll__gutter' style={gutterStyle}>
         <ComponentClass key={`gutter-${side}`} {...props} />
       </span>
     ) : undefined;
@@ -38,9 +38,9 @@ class Row extends React.Component {
     const handleStyle = utils.getWidthStyle(width);
     const className = classnames(
       handleClassName,
-      'scrollable__handle',
-      { 'scrollable__handle--grabbable': !!onGutterResize },
-      `scrollable__handle--${side}`
+      'rickscroll__handle',
+      { 'rickscroll__handle--grabbable': !!onGutterResize },
+      `rickscroll__handle--${side}`
     );
     return componentClass && handleStyle ? (
       <span
@@ -103,10 +103,10 @@ class Row extends React.Component {
       <ContentComponent />;
 
     return (
-      <div className='scrollable__row' onClick={onClick} style={rowStyle}>
+      <div className='rickscroll__row' onClick={onClick} style={rowStyle}>
         {leftComponent}
         {leftHandleComponent}
-        <span className='scrollable__content' key='content-wrapper'>{contentComponent}</span>
+        <span className='rickscroll__content' key='content-wrapper'>{contentComponent}</span>
         {rightHandleComponent}
         {rightComponent}
       </div>

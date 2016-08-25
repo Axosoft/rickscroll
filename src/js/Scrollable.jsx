@@ -294,7 +294,7 @@ class Scrollable extends React.Component {
       };
 
       return (
-        <div className='scrollable__partition' key={partitionIndex} style={partitionStyle}>
+        <div className='rickscroll__partition' key={partitionIndex} style={partitionStyle}>
           {_.map(row, ({ contentComponent, gutters, height, props: rowProps }, innerIndex) => (
             <Row
               contentComponent={contentComponent}
@@ -317,7 +317,7 @@ class Scrollable extends React.Component {
     const getContentsRef = r => { this._contents = r; };
 
     return (
-      <div className='scrollable__contents' key='contents' ref={getContentsRef} style={contentsStyle}>
+      <div className='rickscroll__contents' key='contents' ref={getContentsRef} style={contentsStyle}>
         {header}
         {topHeaderGutter}
         {renderedPartitions}
@@ -351,7 +351,7 @@ class Scrollable extends React.Component {
       width: `${scrollbarWidth}px`
     };
 
-    return <div className='scrollable__corner' style={cornerStyle} />;
+    return <div className='rickscroll__corner' style={cornerStyle} />;
   }
 
   _renderHeader() {
@@ -381,7 +381,7 @@ class Scrollable extends React.Component {
 
     if (lockHeaders) {
       const topHeaderGutter = (
-        <div className='scrollable__header-gutter scrollable__header-gutter--top' key='top-header-gutter'>
+        <div className='rickscroll__header-gutter rickscroll__header-gutter--top' key='top-header-gutter'>
           {_.times(nextHeaderIndex, headerIndex => {
             const { index: headerRowIndex, lockPosition } = headers[headerIndex];
             const { contentComponent, height, props: rowProps } = rows[headerRowIndex];
@@ -408,7 +408,7 @@ class Scrollable extends React.Component {
        * We solve for the vertical transform that we need to remove a header from the bottom gutter:
        * height: height of the header we are transitioning
        * topHeight: height of all other gutters pinned to the top, not including baseHeight
-       * realOffset: the verticalTransform that aligns the next header with the top of the scrollable__contents
+       * realOffset: the verticalTransform that aligns the next header with the top of the rickscroll__contents
        * bottomHeight: the height of the bottom gutter of combined headers
        * adjustedBottomHeight: the total height of the headers in the bottom gutter with the baseHeight
        * adjustedTransform: the vertical transform that is adjusted to the scale of viewable contents
@@ -431,7 +431,7 @@ class Scrollable extends React.Component {
       }
 
       const bottomHeaderGutter = (
-        <div className='scrollable__header-gutter scrollable__header-gutter--bottom' key='bottom-header-gutter'>
+        <div className='rickscroll__header-gutter rickscroll__header-gutter--bottom' key='bottom-header-gutter'>
           {_(headers).slice(bottomGutterStartIndex).map(({ index: headerRowIndex, lockPosition }, index) => {
             const headerIndex = nextHeaderIndex + index;
             const { contentComponent, height, props: rowProps } = rows[headerRowIndex];
@@ -475,7 +475,7 @@ class Scrollable extends React.Component {
     const scrollTo = clickToScroll ? (() => this._scrollTo({ y: scrollToPosition })) : undefined;
 
     const header = (
-      <div className='scrollable__header' key={`header-${headerRowIndex}`} style={headerStyle}>
+      <div className='rickscroll__header' key={`header-${headerRowIndex}`} style={headerStyle}>
         <Row
           contentComponent={contentComponent}
           guttersConfig={guttersConfig}
@@ -517,9 +517,9 @@ class Scrollable extends React.Component {
     const getHorizontalScrollbarRef = r => { this._horizontalScrollbar = r; };
 
     return (
-      <div className='scrollable__bottom-wrapper' style={sharedStyle}>
+      <div className='rickscroll__bottom-wrapper' style={sharedStyle}>
         <div
-          className='scrollable__horizontal-scrollbar'
+          className='rickscroll__horizontal-scrollbar'
           key='scrollable'
           onScroll={this._onHorizontalScroll}
           ref={getHorizontalScrollbarRef}
@@ -558,7 +558,7 @@ class Scrollable extends React.Component {
 
     return (
       <div
-        className='scrollable__vertical-scrollbar'
+        className='rickscroll__vertical-scrollbar'
         onScroll={this._onVerticalScroll}
         ref={getVerticalScrollbarRef}
         style={verticalScrollbarStyle}
@@ -713,8 +713,8 @@ class Scrollable extends React.Component {
       shouldRender
     } = this.state;
 
-    const scrollableClassName = classnames('scrollable', {
-      'scrollable--performing-resize': performing
+    const scrollableClassName = classnames('rickscroll', {
+      'rickscroll--performing-resize': performing
     });
     const topWrapperStyle = !!horizontalScrollConfig && shouldRender.horizontalScrollbar ? {
       height: `calc(100% - ${scrollbarHeight}px)`
@@ -725,7 +725,7 @@ class Scrollable extends React.Component {
     return (
       <div className={scrollableClassName} ref={getScrollableRef}>
         <div
-          className='scrollable__top-wrapper'
+          className='rickscroll__top-wrapper'
           key='top-wrapper'
           onMouseMove={this._onResize}
           onMouseUp={this._stopResize}

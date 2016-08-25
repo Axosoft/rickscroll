@@ -13,7 +13,7 @@ class HorizontalWrapper extends React.Component {
     const horizontalWrapperStyle = {
       transform: `translate3d(-${offset}px, -0px, 0px)`
     };
-    return <span className='scrollable__horizontal-wrapper' style={horizontalWrapperStyle}>{children}</span>;
+    return <span className='rickscroll__horizontal-wrapper' style={horizontalWrapperStyle}>{children}</span>;
   }
 }
 
