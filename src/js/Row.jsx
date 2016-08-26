@@ -17,16 +17,21 @@ class Row extends React.Component {
     return !_.isEqual(nextProps, this.props) || !_.isEqual(nextState, this.state);
   }
 
-  _getRenderableGutter(side, index, { componentClass: ComponentClass, props = {} } = {}, width) {
+  _getRenderableGutter(side, index, {
+    className: thisGutterClassName,
+    componentClass: ComponentClass,
+    props = {}
+  } = {}, width, gutterClassName) {
     const gutterStyle = utils.getWidthStyle(width);
+    const className = classnames('rickscroll__gutter', gutterClassName, thisGutterClassName);
     return ComponentClass && gutterStyle ? (
-      <span className='rickscroll__gutter' style={gutterStyle}>
+      <span className={className} style={gutterStyle}>
         <ComponentClass key={`gutter-${side}`} {...props} />
       </span>
     ) : undefined;
   }
 
-  _getRenderableHandle(side, { componentClass, handleClassName } = {}, width) {
+  _getRenderableHandle(side, { componentClass, handleClassName: thisHandleClassName } = {}, width, handleClassName) {
     const {
       guttersConfig: {
         [side]: {
@@ -38,6 +43,7 @@ class Row extends React.Component {
     const handleStyle = utils.getWidthStyle(width);
     const className = classnames(
       handleClassName,
+      thisHandleClassName,
       'rickscroll__handle',
       { 'rickscroll__handle--grabbable': !!onGutterResize },
       `rickscroll__handle--${side}`
@@ -54,13 +60,19 @@ class Row extends React.Component {
 
   render() {
     const {
+      className: thisRowClassName,
       contentComponent: ContentComponent,
+      contentClassName: thisContentClassName,
       guttersConfig: {
         left: {
+          className: leftGutterClassName,
+          handleClassName: leftHandleClassName,
           handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
           width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
         } = {},
         right: {
+          className: rightGutterClassName,
+          handleClassName: rightHandleClassName,
           handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
           width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
         } = {}
@@ -80,33 +92,40 @@ class Row extends React.Component {
       constants.handleClass.LEFT,
       index,
       gutters.left,
-      leftGutterWidth
+      leftGutterWidth,
+      leftGutterClassName
     );
     const leftHandleComponent = this._getRenderableHandle(
       constants.handleClass.LEFT,
       gutters.left,
-      leftHandleWidth
+      leftHandleWidth,
+      leftHandleClassName
     );
     const rightComponent = this._getRenderableGutter(
       constants.handleClass.RIGHT,
       index,
       gutters.right,
-      rightGutterWidth
+      rightGutterWidth,
+      rightGutterClassName
     );
     const rightHandleComponent = this._getRenderableHandle(
       constants.handleClass.RIGHT,
       gutters.right,
-      rightHandleWidth
+      rightHandleWidth,
+      rightHandleClassName
     );
     const contentComponent = horizontalTransform !== undefined ?
       <ContentComponent key='content' offset={horizontalTransform} {...rowProps} /> :
       <ContentComponent />;
 
+    const rowClassName = classnames('rickscroll__row', thisRowClassName);
+    const contentClassName = classnames('rickscroll__content', thisContentClassName);
+
     return (
-      <div className='rickscroll__row' onClick={onClick} style={rowStyle}>
+      <div className={rowClassName} onClick={onClick} style={rowStyle}>
         {leftComponent}
         {leftHandleComponent}
-        <span className='rickscroll__content' key='content-wrapper'>{contentComponent}</span>
+        <span className={contentClassName} key='content-wrapper'>{contentComponent}</span>
         {rightHandleComponent}
         {rightComponent}
       </div>
@@ -115,6 +134,8 @@ class Row extends React.Component {
 }
 
 Row.propTypes = {
+  className: types.string,
+  contentClassName: types.string,
   contentComponent: utils.types.renderableComponent,
   gutters: utils.types.gutters,
   guttersConfig: utils.types.guttersConfig,

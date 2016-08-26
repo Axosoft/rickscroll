@@ -4,6 +4,7 @@ const constants = require('./constants');
 const { Easer } = require('functional-easing');
 const { Point } = require('./models');
 const React = require('react');
+const { PropTypes: types } = React;
 const Row = require('./Row');
 const utils = require('./utils');
 const _ = require('lodash');
@@ -309,19 +310,24 @@ class Scrollable extends React.Component {
 
       return (
         <div className='rickscroll__partition' key={partitionIndex} style={partitionStyle}>
-          {_.map(row, ({ contentComponent, gutters, height, props: rowProps }, innerIndex) => (
-            <Row
-              contentComponent={contentComponent}
-              gutters={gutters}
-              guttersConfig={guttersConfig}
-              horizontalTransform={horizontalTransform}
-              index={innerIndex}
-              key={innerIndex}
-              onStartResize={this._startResize}
-              rowHeight={height}
-              rowProps={rowProps}
-            />
-          ))}
+          {_.map(
+            row,
+            ({ className, contentComponent, contentClassName, gutters, height, props: rowProps }, innerIndex) => (
+              <Row
+                className={className}
+                contentComponent={contentComponent}
+                contentClassName={contentClassName}
+                gutters={gutters}
+                guttersConfig={guttersConfig}
+                horizontalTransform={horizontalTransform}
+                index={innerIndex}
+                key={innerIndex}
+                onStartResize={this._startResize}
+                rowHeight={height}
+                rowProps={rowProps}
+              />
+            )
+          )}
         </div>
       );
     });
@@ -398,11 +404,12 @@ class Scrollable extends React.Component {
         <div className='rickscroll__header-gutter rickscroll__header-gutter--top' key='top-header-gutter'>
           {_.times(nextHeaderIndex, headerIndex => {
             const { index: headerRowIndex, lockPosition } = headers[headerIndex];
-            const { contentComponent, height, props: rowProps } = rows[headerRowIndex];
+            const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
             const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
 
             return (
               <Row
+                className={className}
                 contentComponent={contentComponent}
                 guttersConfig={guttersConfig}
                 horizontalTransform={0}
@@ -448,10 +455,11 @@ class Scrollable extends React.Component {
         <div className='rickscroll__header-gutter rickscroll__header-gutter--bottom' key='bottom-header-gutter'>
           {_(headers).slice(bottomGutterStartIndex).map(({ index: headerRowIndex, lockPosition }, index) => {
             const headerIndex = nextHeaderIndex + index;
-            const { contentComponent, height, props: rowProps } = rows[headerRowIndex];
+            const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
             const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
             return (
               <Row
+                className={className}
                 contentComponent={contentComponent}
                 guttersConfig={guttersConfig}
                 horizontalTransform={0}
@@ -473,7 +481,7 @@ class Scrollable extends React.Component {
     const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
 
     const { index: headerRowIndex, lockPosition: scrollToPosition } = headers[headerIndex];
-    const { contentComponent, height, props: rowProps } = rows[headerRowIndex];
+    const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
 
     const headerStyle = {
       height: `${height}px`,
@@ -491,6 +499,7 @@ class Scrollable extends React.Component {
     const header = (
       <div className='rickscroll__header' key={`header-${headerRowIndex}`} style={headerStyle}>
         <Row
+          className={className}
           contentComponent={contentComponent}
           guttersConfig={guttersConfig}
           horizontalTransform={0}
@@ -510,6 +519,7 @@ class Scrollable extends React.Component {
       props: {
         horizontalScrollConfig,
         horizontalScrollConfig: {
+          className,
           scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
         } = {}
       },
@@ -529,11 +539,12 @@ class Scrollable extends React.Component {
     const fillerStyle = { height: '1px', width: `${contentWidth}px` };
 
     const getHorizontalScrollbarRef = r => { this._horizontalScrollbar = r; };
+    const horizontalScrollbarClassName = classnames('rickscroll__horizontal-scrollbar', className);
 
     return (
       <div className='rickscroll__bottom-wrapper' style={sharedStyle}>
         <div
-          className='rickscroll__horizontal-scrollbar'
+          className={horizontalScrollbarClassName}
           key='scrollable'
           onScroll={this._onHorizontalScroll}
           ref={getHorizontalScrollbarRef}
@@ -550,6 +561,7 @@ class Scrollable extends React.Component {
     const {
       props: {
         verticalScrollConfig: {
+          className,
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         } = {}
       },
@@ -569,10 +581,11 @@ class Scrollable extends React.Component {
     };
 
     const getVerticalScrollbarRef = r => { this._verticalScrollbar = r; };
+    const verticalScrollbarCassName = classnames('rickscroll__vertical-scrollbar', className);
 
     return (
       <div
-        className='rickscroll__vertical-scrollbar'
+        className={verticalScrollbarCassName}
         onScroll={this._onVerticalScroll}
         ref={getVerticalScrollbarRef}
         style={verticalScrollbarStyle}
@@ -704,6 +717,7 @@ class Scrollable extends React.Component {
 
   render() {
     const {
+      className,
       horizontalScrollConfig,
       horizontalScrollConfig: {
         scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
@@ -716,7 +730,7 @@ class Scrollable extends React.Component {
 
     const scrollableClassName = classnames('rickscroll', {
       'rickscroll--performing-resize': performing
-    });
+    }, className);
     const topWrapperStyle = !!horizontalScrollConfig && shouldRender.horizontalScrollbar ? {
       height: `calc(100% - ${scrollbarHeight}px)`
     } : undefined;
@@ -743,6 +757,7 @@ class Scrollable extends React.Component {
 }
 
 Scrollable.propTypes = {
+  className: types.string,
   guttersConfig: utils.types.guttersConfig,
   headerConfig: utils.types.headerConfig,
   horizontalScrollConfig: utils.types.horizontalScrollConfig,

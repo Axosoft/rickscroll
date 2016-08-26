@@ -4,6 +4,8 @@ const _ = require('lodash');
 const renderableComponent = types.oneOfType([types.func, types.element]);
 
 const gutterConfig = types.shape({
+  className: types.string,
+  handleClassName: types.string,
   handleWidth: types.number,
   minWidth: types.number,
   width: types.number
@@ -21,13 +23,16 @@ const headerConfig = types.shape({
 });
 
 const horizontalScrollConfig = types.shape({
+  className: types.string,
   contentWidth: types.number.isRequired,
   scrollbarHeight: types.number
 });
 
 const rowGutter = types.shape({
+  className: types.string,
   componentClass: renderableComponent.isRequired,
-  handleClassName: types.string
+  handleClassName: types.string,
+  props: types.object
 });
 
 const gutters = types.shape({
@@ -36,9 +41,22 @@ const gutters = types.shape({
 });
 
 const row = types.shape({
+  className: types.string,
+  contentClassName: types.string,
   contentComponent: renderableComponent.isRequired,
   gutters,
-  height: types.number.isRequired
+  height: types.number.isRequired,
+  props: types.object
+});
+
+const scrollTo = types.shape({
+  x: types.number,
+  y: types.number
+});
+
+const verticalScrollConfig = types.shape({
+  className: types.string,
+  scrollbarWidth: types.number
 });
 
 function findInvalid(container, fn) {
@@ -71,6 +89,10 @@ function validateGutter(props, side, location) {
 
   if (!_.isObject(gutterProp)) {
     return new Error(`Invalid ${location} \`${side}\` supplied to \`Rickscroll\`.`);
+  }
+
+  if (!_.isUndefined(gutterProp.className) && !_.isString(gutterProp.className)) {
+    return new Error(`Invalid ${fullLocation} \`className\` supplied to \`Rickscroll\`.`);
   }
 
   const invalid = validateRenderable(gutterProp, 'componentClass', fullLocation);
@@ -115,6 +137,14 @@ function validateGutters(props, location) {
 }
 
 function validateRow(props, location) {
+  if (!_.isUndefined(props.className) && !_.isString(props.className)) {
+    return new Error(`Invalid ${location} \`className\` supplied to \`Rickscroll\`.`);
+  }
+
+  if (!_.isUndefined(props.contentClassName) && !_.isString(props.contentClassName)) {
+    return new Error(`Invalid ${location} \`contentClassName\` supplied to \`Rickscroll\`.`);
+  }
+
   let invalid = validateRenderable(props, 'contentComponent', location);
   if (invalid) {
     return invalid;
@@ -170,6 +200,10 @@ function lists(props) {
   }
 
   return findInvalid(listsProp, (listContainer, containerIndex) => {
+    if (!_.isUndefined(props.headerClassName) && !_.isString(props.headerClassName)) {
+      return new Error(`Invalid lists[${containerIndex}] \`headerClassName\` supplied to \`Rickscroll\`.`);
+    }
+
     let invalid = validateRenderable(listContainer, 'headerComponent', `lists[${containerIndex}]`);
     if (invalid) {
       return invalid;
@@ -191,15 +225,6 @@ function lists(props) {
     return null;
   });
 }
-
-const scrollTo = types.shape({
-  x: types.number,
-  y: types.number
-});
-
-const verticalScrollConfig = types.shape({
-  scrollbarWidth: types.number
-});
 
 module.exports = {
   gutterConfig,
