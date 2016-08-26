@@ -184,42 +184,56 @@ class Scrollable extends React.Component {
     const { horizontalTransform, verticalTransform } = this.state;
     const delta = _.clone(scrollTo)
       .sub(new Point(horizontalTransform, verticalTransform));
-    const transition = new Point(0, 0);
-    const movingRight = delta.x >= 0;
-    const movingUp = delta.y <= 0;
 
-    return _.throttle(easer(elapsedTime => {
+    return _.throttle(easer(easedElapsedTime => {
       const {
-        horizontalTransform: latestHorizontalTransform,
-        scrollingToPosition: latestScrollingToPosition,
-        verticalTransform: latestVerticalTransform
-      } = this.state;
+        props: {
+          horizontalScrollConfig
+        },
+        state: {
+          contentHeight,
+          partitions,
+          scrollingToPosition: latestScrollingToPosition,
+          shouldRender
+        },
+        _horizontalScrollbar,
+        _verticalScrollbar
+      } = this;
       if (!_.isEqual(scrollTo, latestScrollingToPosition)) {
         return;
       }
 
+      const withHorizontalScrolling = !!horizontalScrollConfig && shouldRender.horizontalScrollbar;
+      const elapsedTime = easedElapsedTime > 0.999 ? 1 : easedElapsedTime;
       const deltaScrolled = new Point(delta.x, delta.y)
-        .scale(elapsedTime)
-        .sub(transition);
+        .scale(elapsedTime);
+      const newTransform = new Point(horizontalTransform, verticalTransform)
+        .add(deltaScrolled);
 
-      if (
-        (movingRight && latestHorizontalTransform + deltaScrolled.x > scrollTo.x) ||
-        (!movingRight && latestHorizontalTransform + deltaScrolled.x < scrollTo.x)
-      ) {
-        deltaScrolled.x = 0;
+      const scrollChanges = {};
+
+      // vertical
+      if (shouldRender.verticalScrollbar) {
+        const maxHeight = utils.getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
+        _.assign(scrollChanges, utils.getScrollValues(newTransform.y, maxHeight, partitions));
       }
 
-      if (
-        (movingUp && latestVerticalTransform + deltaScrolled.y < scrollTo.y) ||
-        (!movingUp && latestVerticalTransform + deltaScrolled.y > scrollTo.y)
-      ) {
-        deltaScrolled.y = 0;
+      // horizontal scrolling
+      if (withHorizontalScrolling) {
+        scrollChanges.horizontalTransform = _.clamp(
+          newTransform.x,
+          0,
+          _horizontalScrollbar.scrollWidth - _horizontalScrollbar.offsetWidth
+        );
       }
 
-      transition.add(deltaScrolled);
-      this._applyScrollChange({
-        deltaX: deltaScrolled.x,
-        deltaY: deltaScrolled.y
+      this.setState(scrollChanges, () => {
+        if (shouldRender.verticalScrollbar) {
+          _verticalScrollbar.scrollTop = scrollChanges.verticalTransform;
+        }
+        if (withHorizontalScrolling) {
+          _horizontalScrollbar.scrollLeft = scrollChanges.horizontalTransform;
+        }
       });
     }), constants.ANIMATION_FPS_120, { leading: true });
   }
@@ -578,19 +592,6 @@ class Scrollable extends React.Component {
 
     animation = new AnimationTimer()
       .on('tick', this._getThrottledAnimationFrameFn(scrollingToPosition))
-      .on('stop', () => {
-        const { horizontalTransform, scrollingToPosition: latestScrollingToPosition, verticalTransform } = this.state;
-        if (!_.isEqual(scrollingToPosition, latestScrollingToPosition)) {
-          return;
-        }
-
-        if (!_.isEqual(scrollingToPosition, new Point(horizontalTransform, verticalTransform))) {
-          const delta = _.clone(scrollingToPosition)
-            .sub(new Point(horizontalTransform, verticalTransform));
-
-          this._applyScrollChange({ deltaX: delta.x, deltaY: delta.y });
-        }
-      })
       .play();
 
     this.setState({ animation, scrollingToPosition });
