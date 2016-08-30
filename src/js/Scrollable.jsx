@@ -82,33 +82,38 @@ class Scrollable extends React.Component {
     this._updateDimensions(this.props);
   }
 
-  componentWillReceiveProps({ list: nextList, scrollTo: nextScrollTo = {}, headerConfig = {} }) {
+  componentWillReceiveProps({ list: nextList, lists: nextLists, scrollTo: nextScrollTo = {}, headerConfig = {} }) {
     const {
       props: {
         list: prevList,
+        lists: prevLists,
         scrollTo: prevScrollTo = {}
       },
       state: { buffers }
     } = this;
 
-    if (!_.isEqual(prevScrollTo, nextScrollTo)) {
-      this._scrollTo(nextScrollTo);
-    }
+    const prevListContainer = prevList || prevLists;
+    const nextListContainer = nextList || nextLists;
 
-    if (prevList !== nextList || !_.isEqual(prevList, nextList)) {
+    if (prevListContainer !== nextListContainer || !_.isEqual(prevListContainer, nextListContainer)) {
       const {
         avgRowHeight,
         contentHeight,
         headers,
         partitions,
         rows
-      } = utils.buildRowConfig(nextList, buffers.offset, headerConfig.lockHeaders);
+      } = utils.buildRowConfig(nextListContainer, buffers.offset, headerConfig.lockHeaders);
       this.setState({ avgRowHeight, contentHeight, headers, partitions, rows });
+    }
+
+    if (!_.isEqual(prevScrollTo, nextScrollTo)) {
+      this._scrollTo(nextScrollTo);
     }
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return !_.isEqual(this.props, nextProps) || !_.isEqual(this.state, nextState);
+    return !_.isEqual(this.props, nextProps) ||
+      !_.isEqual(this.state, nextState);
   }
 
   componentDidUpdate(prevProps, prevState) {
