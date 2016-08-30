@@ -3,9 +3,12 @@ const _ = require('lodash');
 const constants = require('./constants');
 const types = require('./propTypes');
 
-function reduceRowsIntoRowConfig(prevState, { headerClassName, headerComponent, headerProps, height, rows: inRows }) {
+function reduceRowsIntoRowConfig(
+  prevState, { headerClassName, headerComponent, headerProps, height, rows: inRows }, index
+) {
   const {
     adjustHeaderOffset,
+    collapsedSections,
     contentHeight: prevHeight,
     headers,
     lockHeaders,
@@ -42,20 +45,27 @@ function reduceRowsIntoRowConfig(prevState, { headerClassName, headerComponent, 
     outRows.push({ className: headerClassName, contentComponent: headerComponent, height, props: headerProps });
   }
 
-  outRows.push(..._.map(inRows, row => {
-    nextOffset++;
-    nextOffset %= offsetBuffer;
+  if (_.isUndefined(collapsedSections[index])) {
+    collapsedSections[index] = false;
+  }
 
-    if (nextOffset === 0) {
-      partitions.push(contentHeight);
-    }
+  if (!headerComponent || !collapsedSections[index]) {
+    outRows.push(..._.map(inRows, row => {
+      nextOffset++;
+      nextOffset %= offsetBuffer;
 
-    contentHeight += row.height;
-    return row;
-  }));
+      if (nextOffset === 0) {
+        partitions.push(contentHeight);
+      }
+
+      contentHeight += row.height;
+      return row;
+    }));
+  }
 
   return {
     adjustHeaderOffset: newHeaderOffset,
+    collapsedSections,
     contentHeight,
     headers,
     lockHeaders,
@@ -66,7 +76,7 @@ function reduceRowsIntoRowConfig(prevState, { headerClassName, headerComponent, 
   };
 }
 
-function buildRowConfig(list, offsetBuffer, lockHeaders) {
+function buildRowConfig(list, offsetBuffer, lockHeaders, collapsedSections = []) {
   const offsetCount = offsetBuffer - 1;
 
   if (list.length === 0) {
@@ -86,6 +96,7 @@ function buildRowConfig(list, offsetBuffer, lockHeaders) {
   if (list[0] && list[0].headerComponent) {
     return avgRowHeight(_.reduce(list, reduceRowsIntoRowConfig, {
       adjustHeaderOffset: 0,
+      collapsedSections,
       contentHeight: 0,
       headers: [],
       lockHeaders,
@@ -98,6 +109,7 @@ function buildRowConfig(list, offsetBuffer, lockHeaders) {
 
   return avgRowHeight(_.reduce([{ rows: list }], reduceRowsIntoRowConfig, {
     contentHeight: 0,
+    collapsedSections,
     headers: null,
     offsetBuffer,
     offsetCount,

@@ -34,16 +34,21 @@ class Scrollable extends React.Component {
     this._updateDimensions = this._updateDimensions.bind(this);
 
     const { headerConfig = {} } = props;
-    const { list, lists } = props;
+    const {
+      headerConfig: { initCollapsedSections } = {},
+      list,
+      lists
+    } = props;
     const listContainer = list || lists;
     const offset = 6;
     const {
       avgRowHeight,
+      collapsedSections,
       contentHeight,
       headers,
       partitions,
       rows
-    } = utils.buildRowConfig(listContainer, offset, headerConfig.lockHeaders);
+    } = utils.buildRowConfig(listContainer, offset, headerConfig.lockHeaders, initCollapsedSections);
 
     this.state = {
       animation: null,
@@ -52,6 +57,7 @@ class Scrollable extends React.Component {
         display: 60,
         offset
       },
+      collapsedSections,
       contentHeight,
       headers,
       horizontalTransform: 0,
@@ -89,7 +95,7 @@ class Scrollable extends React.Component {
         lists: prevLists,
         scrollTo: prevScrollTo = {}
       },
-      state: { buffers }
+      state: { buffers, collapsedSections: oldCollapsedSections }
     } = this;
 
     const prevListContainer = prevList || prevLists;
@@ -98,12 +104,13 @@ class Scrollable extends React.Component {
     if (prevListContainer !== nextListContainer || !_.isEqual(prevListContainer, nextListContainer)) {
       const {
         avgRowHeight,
+        collapsedSections,
         contentHeight,
         headers,
         partitions,
         rows
-      } = utils.buildRowConfig(nextListContainer, buffers.offset, headerConfig.lockHeaders);
-      this.setState({ avgRowHeight, contentHeight, headers, partitions, rows });
+      } = utils.buildRowConfig(nextListContainer, buffers.offset, headerConfig.lockHeaders, oldCollapsedSections);
+      this.setState({ avgRowHeight, collapsedSections, contentHeight, headers, partitions, rows });
     }
 
     if (!_.isEqual(prevScrollTo, nextScrollTo)) {
@@ -119,6 +126,8 @@ class Scrollable extends React.Component {
   componentDidUpdate(prevProps, prevState) {
     this._updateDimensions(prevProps, prevState);
   }
+
+  // private
 
   _applyScrollChange({ deltaX, deltaY }) {
     const {
@@ -719,7 +728,7 @@ class Scrollable extends React.Component {
     buffers.display = numRowsInContents + (2 * buffers.offset);
     buffers.display += buffers.offset - (buffers.display % buffers.offset);
 
-    this.setState({
+    const newState = {
       buffers,
       shouldRender: {
         horizontalScrollbar: shouldRenderHorizontalScrollbar,
@@ -729,7 +738,40 @@ class Scrollable extends React.Component {
         height: clientHeight,
         width: clientWidth
       }
-    });
+    };
+
+    if (!shouldRenderVerticalScrollbar) {
+      newState.verticalTransform = 0;
+      newState.topPartitionIndex = 0;
+    }
+
+    this.setState(newState);
+  }
+
+  // public
+
+  toggleHeader(headerIndex) {
+    const {
+      props: { headerConfig = {}, lists },
+      state: { buffers, collapsedSections: oldCollapsedSections }
+    } = this;
+
+    if (!lists || headerIndex >= lists.length || headerIndex < 0) {
+      return;
+    }
+
+    const collapsedState = !oldCollapsedSections[headerIndex];
+    oldCollapsedSections[headerIndex] = collapsedState;
+
+    const {
+      avgRowHeight,
+      collapsedSections,
+      contentHeight,
+      headers,
+      partitions,
+      rows
+    } = utils.buildRowConfig(lists, buffers.offset, headerConfig.lockHeaders, oldCollapsedSections);
+    this.setState({ avgRowHeight, collapsedSections, contentHeight, headers, partitions, rows });
   }
 
   render() {
