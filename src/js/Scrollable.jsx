@@ -4,11 +4,11 @@ const constants = require('./constants');
 const { Easer } = require('functional-easing');
 const { Point } = require('./models');
 const React = require('react');
-const { PropTypes: types } = React;
 const Row = require('./Row');
 const utils = require('./utils');
 const _ = require('lodash');
 
+const { PropTypes: types } = React;
 const easer = new Easer()
   .using('out-cubic');
 
@@ -255,7 +255,7 @@ class Scrollable extends React.Component {
         minWidth,
         onGutterResize = (() => {})
       } = {}
-    } = this.props.guttersConfig;
+    } = this.props.guttersConfig || {};
     if (performing) {
       onGutterResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
     }
@@ -315,8 +315,8 @@ class Scrollable extends React.Component {
             ({ className, contentComponent, contentClassName, gutters, height, props: rowProps }, innerIndex) => (
               <Row
                 className={className}
-                contentComponent={contentComponent}
                 contentClassName={contentClassName}
+                contentComponent={contentComponent}
                 gutters={gutters}
                 guttersConfig={guttersConfig}
                 horizontalTransform={horizontalTransform}
@@ -441,20 +441,32 @@ class Scrollable extends React.Component {
         const { height: baseHeight } = headers[0];
         const {
           adjustHeaderOffset: topHeight,
-          realOffset
+          realOffset: removeFirstHeaderOffset
         } = headers[nextHeaderIndex] || headers[nextHeaderIndex - 1];
         const { adjustHeaderOffset: bottomHeight } = headers[headers.length - 1];
         const adjustedBottomHeight = (baseHeight + bottomHeight) - topHeight;
-        const adjustedTransform = (realOffset - verticalTransform) + adjustedBottomHeight;
-        if (adjustedTransform <= _contents.clientHeight - 1) {
+        const adjustedTransform = (removeFirstHeaderOffset - verticalTransform) + adjustedBottomHeight;
+        if (bottomGutterStartIndex !== headers.length && adjustedTransform <= _contents.clientHeight - 1) {
           bottomGutterStartIndex++;
+          const skipHeadersUntil = _(headers)
+            .slice(bottomGutterStartIndex)
+            .findIndex(({ adjustHeaderOffset, realOffset }) => {
+              const restHeight = bottomHeight - adjustHeaderOffset;
+              return realOffset + topHeight >= ((_contents.clientHeight + verticalTransform) - restHeight);
+            });
+
+          if (skipHeadersUntil >= 0) {
+            bottomGutterStartIndex += skipHeadersUntil;
+          } else {
+            bottomGutterStartIndex = headers.length;
+          }
         }
       }
 
       const bottomHeaderGutter = (
         <div className='rickscroll__header-gutter rickscroll__header-gutter--bottom' key='bottom-header-gutter'>
           {_(headers).slice(bottomGutterStartIndex).map(({ index: headerRowIndex, lockPosition }, index) => {
-            const headerIndex = nextHeaderIndex + index;
+            const headerIndex = bottomGutterStartIndex + index;
             const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
             const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
             return (

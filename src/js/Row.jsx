@@ -37,7 +37,7 @@ class Row extends React.Component {
         [side]: {
           onGutterResize
         } = {}
-      },
+      } = {},
       onStartResize = (() => () => {})
     } = this.props;
     const handleStyle = utils.getWidthStyle(width);
@@ -116,7 +116,7 @@ class Row extends React.Component {
     );
     const contentComponent = horizontalTransform !== undefined ?
       <ContentComponent key='content' offset={horizontalTransform} {...rowProps} /> :
-      <ContentComponent />;
+      <ContentComponent {...rowProps} />;
 
     const rowClassName = classnames('rickscroll__row', thisRowClassName);
     const contentClassName = classnames('rickscroll__content', thisContentClassName);
