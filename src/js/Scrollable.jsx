@@ -15,30 +15,38 @@ const easer = new Easer()
 class Scrollable extends React.Component {
   constructor(props) {
     super(props);
-    this._applyScrollChange = this._applyScrollChange.bind(this);
-    this._getContentWidth = this._getContentWidth.bind(this);
-    this._getThrottledAnimationFrameFn = this._getThrottledAnimationFrameFn.bind(this);
-    this._onHorizontalScroll = this._onHorizontalScroll.bind(this);
-    this._onResize = this._onResize.bind(this);
-    this._onMouseWheel = this._onMouseWheel.bind(this);
+    [
+      '_applyScrollChange',
+      '_getContentWidth',
+      '_getThrottledAnimationFrameFn',
+      '_onHorizontalScroll',
+      '_onResize',
+      '_onMouseWheel',
+      '_onVerticalScroll',
+      '_renderContents',
+      '_renderCorner',
+      '_renderHorizontalScrollbar',
+      '_renderHeader',
+      '_renderVerticalScrollbar',
+      '_scrollTo',
+      '_shouldRenderScrollbars',
+      '_startResize',
+      '_stopResize',
+      '_updateDimensions',
+      'scrollToHeader',
+      'toggleSection'
+    ].forEach(method => { this[method] = this[method].bind(this); });
     this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_120, { trailing: true });
-    this._onVerticalScroll = this._onVerticalScroll.bind(this);
-    this._renderContents = this._renderContents.bind(this);
-    this._renderCorner = this._renderCorner.bind(this);
-    this._renderHorizontalScrollbar = this._renderHorizontalScrollbar.bind(this);
-    this._renderHeader = this._renderHeader.bind(this);
-    this._renderVerticalScrollbar = this._renderVerticalScrollbar.bind(this);
-    this._scrollTo = this._scrollTo.bind(this);
-    this._startResize = this._startResize.bind(this);
-    this._stopResize = this._stopResize.bind(this);
-    this._updateDimensions = this._updateDimensions.bind(this);
 
-    const { headerConfig = {} } = props;
     const {
-      headerConfig: { initCollapsedSections } = {},
+      headerConfig: {
+        initCollapsedSections,
+        type: headerType = constants.headerType.DEFAULT
+      } = {},
       list,
       lists
     } = props;
+    const stackingHeaders = headerType === constants.headerType.STACKING;
     const listContainer = list || lists;
     const offset = 6;
     const {
@@ -48,7 +56,7 @@ class Scrollable extends React.Component {
       headers,
       partitions,
       rows
-    } = utils.buildRowConfig(listContainer, offset, headerConfig.lockHeaders, initCollapsedSections);
+    } = utils.buildRowConfig(listContainer, offset, stackingHeaders, _.clone(initCollapsedSections));
 
     this.state = {
       animation: null,
@@ -88,7 +96,14 @@ class Scrollable extends React.Component {
     this._updateDimensions(this.props);
   }
 
-  componentWillReceiveProps({ list: nextList, lists: nextLists, scrollTo: nextScrollTo = {}, headerConfig = {} }) {
+  componentWillReceiveProps({
+    list: nextList,
+    lists: nextLists,
+    scrollTo: nextScrollTo = {},
+    headerConfig: {
+      type: headerType = constants.headerType.DEFAULT
+    } = {}
+  }) {
     const {
       props: {
         list: prevList,
@@ -98,6 +113,7 @@ class Scrollable extends React.Component {
       state: { buffers, collapsedSections: oldCollapsedSections }
     } = this;
 
+    const stackingHeaders = headerType === constants.headerType.STACKING;
     const prevListContainer = prevList || prevLists;
     const nextListContainer = nextList || nextLists;
 
@@ -109,7 +125,7 @@ class Scrollable extends React.Component {
         headers,
         partitions,
         rows
-      } = utils.buildRowConfig(nextListContainer, buffers.offset, headerConfig.lockHeaders, oldCollapsedSections);
+      } = utils.buildRowConfig(nextListContainer, buffers.offset, stackingHeaders, oldCollapsedSections);
       this.setState({ avgRowHeight, collapsedSections, contentHeight, headers, partitions, rows });
     }
 
@@ -254,7 +270,7 @@ class Scrollable extends React.Component {
   }
 
   _onHorizontalScroll() {
-    const { scrollLeft } = this._horizontalScrollbar;
+    const { scrollLeft = 0 } = this._horizontalScrollbar || {};
     this.setState({ horizontalTransform: scrollLeft });
   }
 
@@ -278,8 +294,15 @@ class Scrollable extends React.Component {
   _onVerticalScroll() {
     const {
       state: { contentHeight, partitions },
-      _verticalScrollbar: { offsetHeight, scrollTop }
+      _verticalScrollbar,
+      _verticalScrollbar: { offsetHeight, scrollTop } = {}
     } = this;
+
+    if (!_verticalScrollbar) {
+      return;
+    }
+
+    console.log(this._verticalScrollbar.scrollTop);
 
     const maxHeight = utils.getMaxHeight(contentHeight, offsetHeight);
 
@@ -393,8 +416,7 @@ class Scrollable extends React.Component {
       props: {
         guttersConfig,
         headerConfig: {
-          clickToScroll,
-          lockHeaders
+          type: headerType = constants.headerType.DEFAULT
         } = {}
       },
       state: {
@@ -413,13 +435,12 @@ class Scrollable extends React.Component {
     const findNextHeaderIndex = _.findIndex(headers, ({ lockPosition }) => lockPosition > verticalTransform);
     const nextHeaderIndex = findNextHeaderIndex === -1 ? headers.length : findNextHeaderIndex;
 
-    if (lockHeaders) {
+    if (headerType === constants.headerType.STACKING) {
       const topHeaderGutter = (
         <div className='rickscroll__header-gutter rickscroll__header-gutter--top' key='top-header-gutter'>
           {_.times(nextHeaderIndex, headerIndex => {
-            const { index: headerRowIndex, lockPosition } = headers[headerIndex];
+            const { index: headerRowIndex } = headers[headerIndex];
             const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
-            const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
 
             return (
               <Row
@@ -429,7 +450,6 @@ class Scrollable extends React.Component {
                 horizontalTransform={0}
                 index={headerRowIndex}
                 key={headerIndex}
-                onClick={scrollTo}
                 rowHeight={height}
                 rowProps={rowProps}
               />
@@ -482,7 +502,7 @@ class Scrollable extends React.Component {
           {_(headers).slice(bottomGutterStartIndex).map(({ index: headerRowIndex, lockPosition }, index) => {
             const headerIndex = bottomGutterStartIndex + index;
             const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
-            const scrollTo = clickToScroll ? (() => this._scrollTo({ y: lockPosition })) : undefined;
+
             return (
               <Row
                 className={className}
@@ -491,7 +511,6 @@ class Scrollable extends React.Component {
                 horizontalTransform={0}
                 index={headerRowIndex}
                 key={headerIndex}
-                onClick={scrollTo}
                 rowHeight={height}
                 rowProps={rowProps}
               />
@@ -501,43 +520,43 @@ class Scrollable extends React.Component {
       );
 
       return { bottomHeaderGutter, topHeaderGutter };
+    } else if (headerType === constants.headerType.LOCKING) {
+      const headerIndex = nextHeaderIndex - 1;
+      const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
+
+      const { index: headerRowIndex } = headers[headerIndex];
+      const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
+
+      const headerStyle = {
+        height: `${height}px`,
+        transform: 'translate3d(0px, 0px, 0px)'
+      };
+
+      if (verticalTransform < maxLockPosition && verticalTransform >= lockPosition - height) {
+        const overlap = (lockPosition - verticalTransform);
+        const headerOffset = height - overlap;
+        headerStyle.transform = `translate3d(0px, -${headerOffset}px, 0px)`;
+      }
+
+
+      const header = (
+        <div className='rickscroll__header' key={`header-${headerRowIndex}`} style={headerStyle}>
+          <Row
+            className={className}
+            contentComponent={contentComponent}
+            guttersConfig={guttersConfig}
+            horizontalTransform={0}
+            index={headerRowIndex}
+            rowHeight={height}
+            rowProps={rowProps}
+          />
+        </div>
+      );
+
+      return { header };
     }
 
-    const headerIndex = nextHeaderIndex - 1;
-    const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
-
-    const { index: headerRowIndex, lockPosition: scrollToPosition } = headers[headerIndex];
-    const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
-
-    const headerStyle = {
-      height: `${height}px`,
-      transform: 'translate3d(0px, 0px, 0px)'
-    };
-
-    if (verticalTransform < maxLockPosition && verticalTransform >= lockPosition - height) {
-      const overlap = (lockPosition - verticalTransform);
-      const headerOffset = height - overlap;
-      headerStyle.transform = `translate3d(0px, -${headerOffset}px, 0px)`;
-    }
-
-    const scrollTo = clickToScroll ? (() => this._scrollTo({ y: scrollToPosition })) : undefined;
-
-    const header = (
-      <div className='rickscroll__header' key={`header-${headerRowIndex}`} style={headerStyle}>
-        <Row
-          className={className}
-          contentComponent={contentComponent}
-          guttersConfig={guttersConfig}
-          horizontalTransform={0}
-          index={headerRowIndex}
-          onClick={scrollTo}
-          rowHeight={height}
-          rowProps={rowProps}
-        />
-      </div>
-    );
-
-    return { header };
+    return {};
   }
 
   _renderHorizontalScrollbar() {
@@ -608,7 +627,6 @@ class Scrollable extends React.Component {
 
     const getVerticalScrollbarRef = r => { this._verticalScrollbar = r; };
     const verticalScrollbarCassName = classnames('rickscroll__vertical-scrollbar', className);
-
     return (
       <div
         className={verticalScrollbarCassName}
@@ -634,6 +652,43 @@ class Scrollable extends React.Component {
       .play();
 
     this.setState({ animation, scrollingToPosition });
+  }
+
+  _shouldRenderScrollbars(contentHeightOverride) {
+    const {
+      props: {
+        horizontalScrollConfig: {
+          scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
+        } = {},
+        verticalScrollConfig: {
+          scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
+        } = {}
+      },
+      state: {
+        contentHeight: contentHeightFromState
+      },
+      _scrollable: { clientHeight, clientWidth }
+    } = this;
+
+    const contentHeight = contentHeightOverride || contentHeightFromState;
+    const clientHeightTooSmall = clientHeight < contentHeight;
+    const clientHeightTooSmallWithHorizontalScrollbar = clientHeight < (contentHeight + scrollbarHeight);
+
+    const contentWidth = this._getContentWidth();
+    const clientWidthTooSmall = clientWidth < contentWidth;
+    const clientWidthTooSmallWithVerticalScrollbar = clientWidth < (contentWidth + scrollbarWidth);
+
+    const shouldRenderVerticalScrollbar = clientHeightTooSmall || (
+      clientWidthTooSmall && clientHeightTooSmallWithHorizontalScrollbar
+    );
+    const shouldRenderHorizontalScrollbar = clientWidthTooSmall || (
+      clientHeightTooSmall && clientWidthTooSmallWithVerticalScrollbar
+    );
+
+    return {
+      horizontalScrollbar: shouldRenderHorizontalScrollbar,
+      verticalScrollbar: shouldRenderVerticalScrollbar
+    };
   }
 
   _startResize(side) {
@@ -667,22 +722,15 @@ class Scrollable extends React.Component {
     });
   }
 
-  _updateDimensions(prevProps, prevState) {
+  _updateDimensions(prevProps, prevState = {}) {
     const {
       props: {
         horizontalScrollConfig,
-        horizontalScrollConfig: {
-          scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
-        } = {},
-        verticalScrollConfig,
-        verticalScrollConfig: {
-          scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
-        } = {}
+        verticalScrollConfig
       },
       state: {
         avgRowHeight,
         buffers,
-        contentHeight,
         rows,
         window: { height, width }
       },
@@ -711,38 +759,26 @@ class Scrollable extends React.Component {
       return;
     }
 
-    const clientHeightTooSmall = clientHeight < contentHeight;
-    const clientHeightTooSmallWithHorizontalScrollbar = clientHeight < (contentHeight + scrollbarHeight);
-
-    const contentWidth = this._getContentWidth();
-    const clientWidthTooSmall = clientWidth < contentWidth;
-    const clientWidthTooSmallWithVerticalScrollbar = clientWidth < (contentWidth + scrollbarWidth);
-
-    const shouldRenderVerticalScrollbar = clientHeightTooSmall || (
-      clientWidthTooSmall && clientHeightTooSmallWithHorizontalScrollbar
-    );
-    const shouldRenderHorizontalScrollbar = clientWidthTooSmall || (
-      clientHeightTooSmall && clientWidthTooSmallWithVerticalScrollbar
-    );
+    const shouldRender = this._shouldRenderScrollbars();
 
     buffers.display = numRowsInContents + (2 * buffers.offset);
     buffers.display += buffers.offset - (buffers.display % buffers.offset);
 
     const newState = {
       buffers,
-      shouldRender: {
-        horizontalScrollbar: shouldRenderHorizontalScrollbar,
-        verticalScrollbar: shouldRenderVerticalScrollbar
-      },
+      shouldRender,
       window: {
         height: clientHeight,
         width: clientWidth
       }
     };
 
-    if (!shouldRenderVerticalScrollbar) {
+    if (!shouldRender.verticalScrollbar) {
       newState.verticalTransform = 0;
       newState.topPartitionIndex = 0;
+      if (this._verticalScrollbar) {
+        this._verticalScrollbar.scrollTop = 0;
+      }
     }
 
     this.setState(newState);
@@ -750,18 +786,37 @@ class Scrollable extends React.Component {
 
   // public
 
-  toggleHeader(headerIndex) {
+  scrollToHeader(headerIndex) {
     const {
-      props: { headerConfig = {}, lists },
-      state: { buffers, collapsedSections: oldCollapsedSections }
+      props: { lists },
+      state: { headers }
     } = this;
 
     if (!lists || headerIndex >= lists.length || headerIndex < 0) {
       return;
     }
 
-    const collapsedState = !oldCollapsedSections[headerIndex];
-    oldCollapsedSections[headerIndex] = collapsedState;
+    this._scrollTo({ y: headers[headerIndex].lockPosition });
+  }
+
+  toggleSection(sectionIndex) {
+    const {
+      props: {
+        headerConfig: {
+          type: headerType = constants.headerType.DEFAULT
+        } = {},
+        lists
+      },
+      state: { buffers, collapsedSections: oldCollapsedSections }
+    } = this;
+    const stackHeaders = headerType === constants.headerType.STACKING;
+
+    if (!lists || sectionIndex >= lists.length || sectionIndex < 0) {
+      return;
+    }
+
+    const collapsedState = !oldCollapsedSections[sectionIndex];
+    oldCollapsedSections[sectionIndex] = collapsedState;
 
     const {
       avgRowHeight,
@@ -770,7 +825,7 @@ class Scrollable extends React.Component {
       headers,
       partitions,
       rows
-    } = utils.buildRowConfig(lists, buffers.offset, headerConfig.lockHeaders, oldCollapsedSections);
+    } = utils.buildRowConfig(lists, buffers.offset, stackHeaders, oldCollapsedSections);
     this.setState({ avgRowHeight, collapsedSections, contentHeight, headers, partitions, rows });
   }
 

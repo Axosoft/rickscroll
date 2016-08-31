@@ -1,4 +1,5 @@
 const { isValidElement, PropTypes: types } = require('react');
+const constants = require('./constants');
 const _ = require('lodash');
 
 const renderableComponent = types.oneOfType([types.func, types.element]);
@@ -8,19 +9,18 @@ const gutterConfig = types.shape({
   handleClassName: types.string,
   handleWidth: types.number,
   minWidth: types.number,
+  onGutterResize: types.func,
   width: types.number
 });
 
 const guttersConfig = types.shape({
   left: gutterConfig,
-  onGutterResize: types.func,
   right: gutterConfig
 });
 
 const headerConfig = types.shape({
-  clickToScroll: types.bool,
   initCollapsedSections: types.arrayOf(types.bool),
-  lockHeaders: types.bool
+  type: types.oneOf(_.values(constants.headerType))
 });
 
 const horizontalScrollConfig = types.shape({

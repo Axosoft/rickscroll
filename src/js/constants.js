@@ -4,6 +4,11 @@ module.exports = {
     LEFT: 'left',
     RIGHT: 'right'
   },
+  headerType: {
+    DEFAULT: 'default',
+    LOCKING: 'locking',
+    STACKING: 'stacking'
+  },
   LEFT_GUTTER_WIDTH: 0,
   LEFT_HANDLE_WIDTH: 0,
   HORIZONTAL_SCROLLBAR_HEIGHT: 15,

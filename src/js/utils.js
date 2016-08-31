@@ -11,7 +11,7 @@ function reduceRowsIntoRowConfig(
     collapsedSections,
     contentHeight: prevHeight,
     headers,
-    lockHeaders,
+    stackHeaders,
     offsetBuffer,
     offsetCount: prevOffset,
     partitions,
@@ -37,7 +37,7 @@ function reduceRowsIntoRowConfig(
       realOffset: contentHeight
     });
 
-    if (lockHeaders) {
+    if (stackHeaders) {
       newHeaderOffset += height;
     }
 
@@ -68,7 +68,7 @@ function reduceRowsIntoRowConfig(
     collapsedSections,
     contentHeight,
     headers,
-    lockHeaders,
+    stackHeaders,
     offsetBuffer,
     offsetCount: nextOffset,
     partitions,
@@ -76,7 +76,7 @@ function reduceRowsIntoRowConfig(
   };
 }
 
-function buildRowConfig(list, offsetBuffer, lockHeaders, collapsedSections = []) {
+function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSections = []) {
   const offsetCount = offsetBuffer - 1;
 
   if (list.length === 0) {
@@ -99,7 +99,7 @@ function buildRowConfig(list, offsetBuffer, lockHeaders, collapsedSections = [])
       collapsedSections,
       contentHeight: 0,
       headers: [],
-      lockHeaders,
+      stackHeaders,
       offsetBuffer,
       offsetCount,
       partitions: [],
