@@ -302,8 +302,6 @@ class Scrollable extends React.Component {
       return;
     }
 
-    console.log(this._verticalScrollbar.scrollTop);
-
     const maxHeight = utils.getMaxHeight(contentHeight, offsetHeight);
 
     this.setState(utils.getScrollValues(scrollTop, maxHeight, partitions));
