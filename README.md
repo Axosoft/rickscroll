@@ -44,8 +44,8 @@ Most importantly, Rickscroll will:
 
 Public Methods
 ------
- - scrollToHeader(headerIndex: **Integer**): Scrolls to the header at headerIndex.
- - toggleSection(sectionIndex: **Integer**): Toggles the visibility of the rows under headerIndex.
+ - scrollToHeader(headerIndex: **integer**): Scrolls to the header at headerIndex.
+ - toggleSection(sectionIndex: **integer**): Toggles the visibility of the rows under headerIndex.
 
 PropTypes
 ------
@@ -63,9 +63,7 @@ PropTypes
      - handleWidth: **number** *(optional)*
      - minWidth: **number** *(optional)*
      - width: **number** *(optional)*
- - headerConfig: **object** *(optional)*
-   - initCollapsedSections: **array** of **bool** *(optional)*
-   - type: **string** *(optional)* - [default: 'default']
+ - headerType: **string** *(optional)* - [default: 'default']
  - horizontalScrollConfig: **object** *(optional)*
    - className: **string** *(optional)*
    - contentWidth: **number**
@@ -92,6 +90,7 @@ PropTypes
    - headerComponent: **React.Component**
    - headerProps: **object** *(optional)*
    - height: **number**
+   - initCollapsed: **boolean** *(optional)*
    - rows: *(see definition of **list** prop type above)*
  - scrollTo: **object** *(optional)*
    - x: **number** *(optional)* - [default: 0]

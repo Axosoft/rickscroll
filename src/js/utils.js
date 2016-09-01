@@ -4,7 +4,7 @@ const constants = require('./constants');
 const types = require('./propTypes');
 
 function reduceRowsIntoRowConfig(
-  prevState, { headerClassName, headerComponent, headerProps, height, rows: inRows }, index
+  prevState, { headerClassName, headerComponent, headerProps, height, initCollapsed, rows: inRows }, index
 ) {
   const {
     adjustHeaderOffset,
@@ -41,12 +41,12 @@ function reduceRowsIntoRowConfig(
       newHeaderOffset += height;
     }
 
+    if (_.isUndefined(collapsedSections[index])) {
+      collapsedSections[index] = !!initCollapsed;
+    }
+
     contentHeight += height;
     outRows.push({ className: headerClassName, contentComponent: headerComponent, height, props: headerProps });
-  }
-
-  if (_.isUndefined(collapsedSections[index])) {
-    collapsedSections[index] = false;
   }
 
   if (!headerComponent || !collapsedSections[index]) {

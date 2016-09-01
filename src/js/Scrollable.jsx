@@ -39,10 +39,7 @@ class Scrollable extends React.Component {
     this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_120, { trailing: true });
 
     const {
-      headerConfig: {
-        initCollapsedSections,
-        type: headerType = constants.headerType.DEFAULT
-      } = {},
+      headerType = constants.headerType.DEFAULT,
       list,
       lists
     } = props;
@@ -56,7 +53,7 @@ class Scrollable extends React.Component {
       headers,
       partitions,
       rows
-    } = utils.buildRowConfig(listContainer, offset, stackingHeaders, _.clone(initCollapsedSections));
+    } = utils.buildRowConfig(listContainer, offset, stackingHeaders);
 
     this.state = {
       animation: null,
@@ -97,12 +94,10 @@ class Scrollable extends React.Component {
   }
 
   componentWillReceiveProps({
+    headerType = constants.headerType.DEFAULT,
     list: nextList,
     lists: nextLists,
-    scrollTo: nextScrollTo = {},
-    headerConfig: {
-      type: headerType = constants.headerType.DEFAULT
-    } = {}
+    scrollTo: nextScrollTo = {}
   }) {
     const {
       props: {
@@ -413,9 +408,7 @@ class Scrollable extends React.Component {
     const {
       props: {
         guttersConfig,
-        headerConfig: {
-          type: headerType = constants.headerType.DEFAULT
-        } = {}
+        headerType = constants.headerType.DEFAULT
       },
       state: {
         headers,
@@ -800,9 +793,7 @@ class Scrollable extends React.Component {
   toggleSection(sectionIndex) {
     const {
       props: {
-        headerConfig: {
-          type: headerType = constants.headerType.DEFAULT
-        } = {},
+        headerType = constants.headerType.DEFAULT,
         lists
       },
       state: { buffers, collapsedSections: oldCollapsedSections }
@@ -871,7 +862,7 @@ class Scrollable extends React.Component {
 Scrollable.propTypes = {
   className: types.string,
   guttersConfig: utils.types.guttersConfig,
-  headerConfig: utils.types.headerConfig,
+  headerType: utils.types.headerType,
   horizontalScrollConfig: utils.types.horizontalScrollConfig,
   list: utils.types.list,
   lists: utils.types.lists,

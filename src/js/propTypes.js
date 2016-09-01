@@ -18,10 +18,7 @@ const guttersConfig = types.shape({
   right: gutterConfig
 });
 
-const headerConfig = types.shape({
-  initCollapsedSections: types.arrayOf(types.bool),
-  type: types.oneOf(_.values(constants.headerType))
-});
+const headerType = types.oneOf(_.values(constants.headerType));
 
 const horizontalScrollConfig = types.shape({
   className: types.string,
@@ -218,6 +215,10 @@ function lists(props) {
       return new Error(`Invalid prop at lists[${containerIndex}] \`height\` supplied to \`Rickscroll\`.`);
     }
 
+    if (!_.isUndefined(props.initCollapsed) && !_.isBoolean(props.initCollapsed)) {
+      return new Error(`Invalid lists[${containerIndex}] \`initCollapsed\` supplied to \`Rickscroll\`.`);
+    }
+
     invalid = findInvalid(listContainer.rows, (listRow, rowIndex) => validateRow(listRow, `lists.rows[${rowIndex}]`));
     if (invalid) {
       return invalid;
@@ -231,7 +232,7 @@ module.exports = {
   gutterConfig,
   gutters,
   guttersConfig,
-  headerConfig,
+  headerType,
   horizontalScrollConfig,
   list,
   lists,
