@@ -28,9 +28,9 @@ function reduceRowsIntoRowConfig(
     stackHeaders,
     offsetBuffer,
     offsetCount: prevOffset,
-    partitions,
-    rows: outRows
+    partitions
   } = prevState;
+  let { rows: outRows } = prevState;
   let contentHeight = prevHeight;
   let nextOffset = prevOffset;
   let newHeaderOffset = adjustHeaderOffset;
@@ -64,7 +64,7 @@ function reduceRowsIntoRowConfig(
   }
 
   if (!headerComponent || !collapsedSections[index]) {
-    outRows.push(..._.map(inRows, row => {
+    outRows = _.concat(outRows, _.map(inRows, row => {
       nextOffset++;
       nextOffset %= offsetBuffer;
 
