@@ -11,6 +11,9 @@
   "plugins": [
     "react"
   ],
+  "globals": {
+    "window": true
+  },
   "rules": {
     "camelcase": [
       2,

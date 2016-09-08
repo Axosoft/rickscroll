@@ -34,7 +34,8 @@ class Scrollable extends React.Component {
       '_stopResize',
       '_updateDimensions',
       'scrollToHeader',
-      'toggleSection'
+      'toggleSection',
+      'updateDimensions'
     ].forEach(method => { this[method] = this[method].bind(this); });
     this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_120, { trailing: true });
 
@@ -90,6 +91,7 @@ class Scrollable extends React.Component {
   }
 
   componentDidMount() {
+    window.addEventListener('resize', this.updateDimensions);
     this._updateDimensions(this.props);
   }
 
@@ -136,6 +138,10 @@ class Scrollable extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     this._updateDimensions(prevProps, prevState);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.updateDimensions);
   }
 
   // private
@@ -750,29 +756,7 @@ class Scrollable extends React.Component {
       return;
     }
 
-    const shouldRender = this._shouldRenderScrollbars();
-
-    buffers.display = numRowsInContents + (2 * buffers.offset);
-    buffers.display += buffers.offset - (buffers.display % buffers.offset);
-
-    const newState = {
-      buffers,
-      shouldRender,
-      window: {
-        height: clientHeight,
-        width: clientWidth
-      }
-    };
-
-    if (!shouldRender.verticalScrollbar) {
-      newState.verticalTransform = 0;
-      newState.topPartitionIndex = 0;
-      if (this._verticalScrollbar) {
-        this._verticalScrollbar.scrollTop = 0;
-      }
-    }
-
-    this.setState(newState);
+    this.updateDimensions();
   }
 
   // public
@@ -816,6 +800,49 @@ class Scrollable extends React.Component {
       rows
     } = utils.buildRowConfig(lists, buffers.offset, stackHeaders, oldCollapsedSections);
     this.setState({ avgRowHeight, collapsedSections, contentHeight, headers, partitions, rows });
+  }
+
+  updateDimensions() {
+    const {
+      state: {
+        avgRowHeight,
+        buffers
+      },
+      _contents,
+      _scrollable: { clientHeight, clientWidth }
+    } = this;
+
+    const shouldRender = this._shouldRenderScrollbars();
+    const numRowsInContents = _.ceil(_contents.clientHeight / avgRowHeight);
+
+    buffers.display = numRowsInContents + (2 * buffers.offset);
+    buffers.display += buffers.offset - (buffers.display % buffers.offset);
+
+    const newState = {
+      buffers,
+      shouldRender,
+      window: {
+        height: clientHeight,
+        width: clientWidth
+      }
+    };
+
+    if (!shouldRender.verticalScrollbar) {
+      newState.verticalTransform = 0;
+      newState.topPartitionIndex = 0;
+      if (this._verticalScrollbar) {
+        this._verticalScrollbar.scrollTop = 0;
+      }
+    }
+
+    if (!shouldRender.horizontalScrollbar) {
+      newState.horizontalTransform = 0;
+      if (this._horizontalScrollbar) {
+        this._horizontalScrollbar.scrollLeft = 0;
+      }
+    }
+
+    this.setState(newState);
   }
 
   render() {

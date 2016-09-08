@@ -46,6 +46,7 @@ Public Methods
 ------
  - scrollToHeader(headerIndex: **integer**): Scrolls to the header at headerIndex.
  - toggleSection(sectionIndex: **integer**): Toggles the visibility of the rows under headerIndex.
+ - updateDimensions(): Calling this will internally recalculate the dimensions of rickscroll. Rick scroll is already listening to the window resize event, but if you wrap rickscroll with a resizable container, you may need to call updateDimensions when the resizable container is resized.
 
 PropTypes
 ------
