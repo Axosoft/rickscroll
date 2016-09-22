@@ -851,7 +851,8 @@ class Scrollable extends React.Component {
       horizontalScrollConfig,
       horizontalScrollConfig: {
         scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
-      } = {}
+      } = {},
+      style = {}
     } = this.props;
     const {
       resize: { performing },
@@ -868,7 +869,7 @@ class Scrollable extends React.Component {
     const getScrollableRef = r => { this._scrollable = r; };
 
     return (
-      <div className={scrollableClassName} ref={getScrollableRef}>
+      <div className={scrollableClassName} ref={getScrollableRef} style={style}>
         <div
           className='rickscroll__top-wrapper'
           key='top-wrapper'
@@ -894,6 +895,7 @@ Scrollable.propTypes = {
   list: utils.types.list,
   lists: utils.types.lists,
   scrollTo: utils.types.scrollTo,
+  style: utils.types.object,
   verticalScrollConfig: utils.types.verticalScrollConfig
 };
 
