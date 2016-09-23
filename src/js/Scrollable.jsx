@@ -895,7 +895,7 @@ Scrollable.propTypes = {
   list: utils.types.list,
   lists: utils.types.lists,
   scrollTo: utils.types.scrollTo,
-  style: utils.types.object,
+  style: types.object,
   verticalScrollConfig: utils.types.verticalScrollConfig
 };
 
