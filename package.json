@@ -38,7 +38,8 @@
     "eslint-plugin-import": "^1.13.0",
     "eslint-plugin-jsx-a11y": "^2.1.0",
     "eslint-plugin-react": "^6.1.2",
-    "less": "^2.7.1"
+    "less": "^2.7.1",
+    "react": "^15.0.0"
   },
   "peerDependencies": {
     "babel-polyfill": "^6.13.0",
