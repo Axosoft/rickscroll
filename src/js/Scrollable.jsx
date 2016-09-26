@@ -99,16 +99,24 @@ class Scrollable extends React.Component {
     headerType = constants.headerType.DEFAULT,
     list: nextList,
     lists: nextLists,
+    parentHeight: nextParentHeight,
+    parentWidth: nextParentWidth,
     scrollTo: nextScrollTo = {}
   }) {
     const {
       props: {
         list: prevList,
         lists: prevLists,
+        parentHeight: prevParentHeight,
+        parentWidth: prevParentWidth,
         scrollTo: prevScrollTo = {}
       },
       state: { buffers, collapsedSections: oldCollapsedSections }
     } = this;
+
+    if (prevParentHeight !== nextParentHeight || prevParentWidth !== nextParentWidth) {
+      this.updateDimensions();
+    }
 
     const stackingHeaders = headerType === constants.headerType.STACKING;
     const prevListContainer = prevList || prevLists;
@@ -894,6 +902,8 @@ Scrollable.propTypes = {
   horizontalScrollConfig: utils.types.horizontalScrollConfig,
   list: utils.types.list,
   lists: utils.types.lists,
+  parentHeight: types.number,
+  parentWidth: types.number,
   scrollTo: utils.types.scrollTo,
   style: types.object,
   verticalScrollConfig: utils.types.verticalScrollConfig
