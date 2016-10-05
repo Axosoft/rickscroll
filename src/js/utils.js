@@ -60,7 +60,13 @@ function reduceRowsIntoRowConfig(
     }
 
     contentHeight += height;
-    outRows.push({ className: headerClassName, contentComponent: headerComponent, height, props: headerProps });
+    outRows.push({
+      className: headerClassName,
+      contentComponent: headerComponent,
+      height,
+      isHeader: true,
+      props: headerProps
+    });
   }
 
   if (!headerComponent || !collapsedSections[index]) {

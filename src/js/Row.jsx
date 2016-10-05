@@ -1,5 +1,6 @@
 const classnames = require('classnames');
 const constants = require('./constants');
+const HorizontalWrapper = require('./HorizontalWrapper');
 const React = require('react');
 const utils = require('./utils');
 const _ = require('lodash');
@@ -80,7 +81,9 @@ class Row extends React.Component {
       gutters = {},
       horizontalTransform,
       index,
+      isHeader,
       onClick,
+      passthroughOffsets,
       rowHeight,
       rowProps = {}
     } = this.props;
@@ -114,9 +117,19 @@ class Row extends React.Component {
       rightHandleWidth,
       rightHandleClassName
     );
-    const contentComponent = horizontalTransform !== undefined ?
-      <ContentComponent key='content' offset={horizontalTransform} {...rowProps} /> :
-      <ContentComponent {...rowProps} />;
+
+    let contentComponent;
+    if (horizontalTransform !== undefined && !isHeader) {
+      contentComponent = passthroughOffsets
+        ? <ContentComponent key='content' offset={horizontalTransform} {...rowProps} />
+        : (
+            <HorizontalWrapper key='content' offset={horizontalTransform}>
+              <ContentComponent {...rowProps} />
+            </HorizontalWrapper>
+          );
+    } else {
+      contentComponent = <ContentComponent key='content' {...rowProps} />;
+    }
 
     const rowClassName = classnames('rickscroll__row', thisRowClassName);
     const contentClassName = classnames('rickscroll__content', thisContentClassName);
@@ -141,8 +154,10 @@ Row.propTypes = {
   guttersConfig: utils.types.guttersConfig,
   horizontalTransform: types.number,
   index: types.number.isRequired,
+  isHeader: types.bool,
   onClick: types.func,
   onStartResize: types.func,
+  passthroughOffsets: types.bool,
   rowHeight: types.number.isRequired,
   rowProps: types.object
 };

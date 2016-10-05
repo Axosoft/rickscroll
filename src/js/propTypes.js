@@ -23,6 +23,7 @@ const headerType = types.oneOf(_.values(constants.headerType));
 const horizontalScrollConfig = types.shape({
   className: types.string,
   contentWidth: types.number.isRequired,
+  passthroughOffsets: types.bool,
   scrollbarHeight: types.number
 });
 

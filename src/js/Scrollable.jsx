@@ -320,6 +320,9 @@ class Scrollable extends React.Component {
     const {
       props: {
         guttersConfig,
+        horizontalScrollConfig: {
+          passthroughOffsets = false
+        } = {},
         verticalScrollConfig: {
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         } = {}
@@ -356,7 +359,15 @@ class Scrollable extends React.Component {
         <div className='rickscroll__partition' key={partitionIndex} style={partitionStyle}>
           {_.map(
             row,
-            ({ className, contentComponent, contentClassName, gutters, height, props: rowProps }, innerIndex) => (
+            ({
+              className,
+              contentComponent,
+              contentClassName,
+              gutters,
+              height,
+              isHeader,
+              props: rowProps
+            }, innerIndex) => (
               <Row
                 className={className}
                 contentClassName={contentClassName}
@@ -365,8 +376,10 @@ class Scrollable extends React.Component {
                 guttersConfig={guttersConfig}
                 horizontalTransform={horizontalTransform}
                 index={innerIndex}
+                isHeader={isHeader}
                 key={innerIndex}
                 onStartResize={this._startResize}
+                passthroughOffsets={passthroughOffsets}
                 rowHeight={height}
                 rowProps={rowProps}
               />
