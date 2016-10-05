@@ -68,6 +68,7 @@ PropTypes
  - horizontalScrollConfig: **object** *(optional)*
    - className: **string** *(optional)*
    - contentWidth: **number**
+   - passthroughOffsets: **bool** *(optional)* - [default: false]
    - scrollbarHeight: **number** *(optional)* - [default: 15]
  - list \*: **array** of **objects** containing
    - className: **string** *(optional)*
