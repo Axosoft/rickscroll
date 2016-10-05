@@ -1,6 +1,6 @@
 {
   "name": "rickscroll",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "description": "Optimized scrollable view for react",
   "main": "lib/js/index.js",
   "scripts": {
