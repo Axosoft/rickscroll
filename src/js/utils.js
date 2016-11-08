@@ -51,7 +51,7 @@ function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSections = []
   let rowIterator = -1;
   let insertionIterator = 0;
   let adjustHeaderOffset = 0;
-  let contentHeight =  0;
+  let contentHeight = 0;
   let listItem;
 
   listIterator = 0;
