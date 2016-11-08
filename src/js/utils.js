@@ -1,99 +1,16 @@
-const _ = require('lodash');
+const fp = require('lodash/fp');
 
 const constants = require('./constants');
 const types = require('./propTypes');
 
-/**
- * Reduces list or lists type into a single array of rows, as well as collect useful information about rows as they are
- * collected.
- * @param  {object} prevState             The previous state of the reduce function. Matches the return value.
- * @param  {string} headerClassName       className to attach to the row containing the header component of a given list
- * @param  {renderable} headerComponent   a React renderable component that will be the header of a given list
- * @param  {object} headerProps           props to pass to the header component
- * @param  {number} height                The height of the header component
- * @param  {boolean} initCollapsed        whether a given list is collapsed or not. This only applies when constructing
- *                                        the first row state
- * @param  {array} rows                   List of rows to copy into state
- * @param  {number} index                 index of the reduce operation
- * @return {object}                       see comment at the return
- */
-function reduceRowsIntoRowConfig(
-  prevState, { headerClassName, headerComponent, headerProps, height, initCollapsed, rows: inRows }, index
-) {
+function avgRowHeight(config) {
   const {
-    adjustHeaderOffset,
-    collapsedSections,
-    contentHeight: prevHeight,
-    headers,
-    stackHeaders,
-    offsetBuffer,
-    offsetCount: prevOffset,
-    partitions
-  } = prevState;
-  let { rows: outRows } = prevState;
-  let contentHeight = prevHeight;
-  let nextOffset = prevOffset;
-  let newHeaderOffset = adjustHeaderOffset;
-
-  if (headerComponent) {
-    nextOffset++;
-    nextOffset %= offsetBuffer;
-
-    if (nextOffset === 0) {
-      partitions.push(contentHeight);
-    }
-
-    headers.push({
-      adjustHeaderOffset,
-      index: outRows.length,
-      height,
-      lockPosition: contentHeight - adjustHeaderOffset,
-      realOffset: contentHeight
-    });
-
-    if (stackHeaders) {
-      newHeaderOffset += height;
-    }
-
-    if (_.isUndefined(collapsedSections[index])) {
-      collapsedSections[index] = !!initCollapsed;
-    }
-
-    contentHeight += height;
-    outRows.push({
-      className: headerClassName,
-      contentComponent: headerComponent,
-      height,
-      isHeader: true,
-      props: headerProps
-    });
-  }
-
-  if (!headerComponent || !collapsedSections[index]) {
-    outRows = _.concat(outRows, _.map(inRows, row => {
-      nextOffset++;
-      nextOffset %= offsetBuffer;
-
-      if (nextOffset === 0) {
-        partitions.push(contentHeight);
-      }
-
-      contentHeight += row.height;
-      return row;
-    }));
-  }
-
-  return {
-    adjustHeaderOffset: newHeaderOffset, // keeps a running tally of the headeroffsets, used for locking/stagnig headers
-    collapsedSections, // an array of boolean values corresponding to each section in the lists object
-    contentHeight, // the height of the content contained by this list
-    headers, // an array containing header data, (offsets, row index, height, lockPosition)
-    stackHeaders, // should we be calculating headerOffsets from height
-    offsetBuffer, // number of rows to display per partition
-    offsetCount: nextOffset, // keeps track of partition size inbetween reductions
-    partitions, // an array mapping the starting partition indices to starting vertical transforms
-    rows: outRows // the rows that we will use as state
-  };
+    contentHeight,
+    rows: { length }
+  } = config;
+  return _.assign(config, {
+    avgRowHeight: length && _.ceil(contentHeight / length)
+  });
 }
 
 /**
@@ -105,45 +22,119 @@ function reduceRowsIntoRowConfig(
  * @return {object}                         Reduces the list/lists into consumable state for the scrollable
  */
 function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSections = []) {
-  const offsetCount = offsetBuffer - 1;
+  let offsetCount = offsetBuffer - 1;
 
   if (list.length === 0) {
     return { contentHeight: 0, headers: null, partitions: [], rows: [] };
   }
 
-  function avgRowHeight(config) {
-    const {
-      contentHeight,
-      rows: { length }
-    } = config;
-    return _.assign(config, {
-      avgRowHeight: length && _.ceil(contentHeight / length)
-    });
+  const isMultiList = Boolean(list[0] && list[0].headerComponent);
+
+  const lists = isMultiList ? list : [{ rows: list }];
+
+  let numRows = 0;
+  let listIterator = lists.length;
+
+  while (listIterator--) {
+    numRows += 1 + lists[listIterator].rows.length;
   }
 
-  if (list[0] && list[0].headerComponent) {
-    return avgRowHeight(_.reduce(list, reduceRowsIntoRowConfig, {
-      adjustHeaderOffset: 0,
-      collapsedSections,
-      contentHeight: 0,
-      headers: [],
-      stackHeaders,
-      offsetBuffer,
-      offsetCount,
-      partitions: [],
-      rows: []
-    }));
+  if (!isMultiList) {
+    numRows--;
   }
 
-  return avgRowHeight(_.reduce([{ rows: list }], reduceRowsIntoRowConfig, {
-    contentHeight: 0,
+  const rows = new Array(numRows);
+  const headers = [];
+  const partitions = [];
+
+  let controlIterator = numRows;
+  let rowIterator = -1;
+  let insertionIterator = 0;
+  let adjustHeaderOffset = 0;
+  let contentHeight =  0;
+  let listItem;
+
+  listIterator = 0;
+
+  while (controlIterator--) {
+    if (rowIterator === -1) {
+      listItem = lists[listIterator];
+      rowIterator++;
+
+      if (listItem.headerComponent) {
+        offsetCount++;
+        offsetCount %= offsetBuffer;
+
+        if (offsetCount === 0) {
+          partitions.push(contentHeight);
+        }
+
+        headers.push({
+          adjustHeaderOffset,
+          index: insertionIterator,
+          height: listItem.height,
+          lockPosition: contentHeight - adjustHeaderOffset,
+          realOffset: contentHeight
+        });
+
+        if (stackHeaders) {
+          adjustHeaderOffset += listItem.height;
+        }
+
+        if (collapsedSections[listIterator] === undefined) {
+          collapsedSections[listIterator] = Boolean(listItem.initCollapsed);
+        }
+
+        contentHeight += listItem.height;
+        rows[insertionIterator++] = {
+          className: listItem.headerClassName,
+          contentComponent: listItem.headerComponent,
+          height: listItem.height,
+          isHeader: true,
+          props: listItem.headerProps
+        };
+      }
+
+      if (isMultiList) {
+        continue;
+      }
+    }
+
+    if (collapsedSections[listIterator]) {
+      controlIterator -= listItem.rows.length - 1;
+      continue;
+    }
+
+    const row = listItem.rows[rowIterator++];
+
+    offsetCount++;
+    offsetCount %= offsetBuffer;
+
+    if (offsetCount === 0) {
+      partitions.push(contentHeight);
+    }
+
+    contentHeight += row.height;
+
+    rows[insertionIterator++] = row;
+
+    if (listItem.rows.length === rowIterator) {
+      rowIterator = -1;
+      listIterator++;
+    }
+  }
+
+  return avgRowHeight({
+    adjustHeaderOffset,
     collapsedSections,
-    headers: null,
+    contentHeight,
+    headers,
+    stackHeaders,
     offsetBuffer,
     offsetCount,
-    partitions: [],
-    rows: []
-  }));
+    partitions,
+    rows
+  });
 }
 
 /**
@@ -180,9 +171,10 @@ function getResizeWidth(side, minWidth = 0, baseWidth, startingPosition, current
  * @return {object}                   topPartionIndex and the clamped verticalTransform
  */
 function getScrollValues(preClampTransform, maxHeight, partitions) {
-  const verticalTransform = _.clamp(preClampTransform, 0, maxHeight);
-  const topPartitionIndex = _.findIndex(
-    partitions, partitionStartingIndex => partitionStartingIndex > verticalTransform
+  const verticalTransform = fp.clamp(0, maxHeight, preClampTransform);
+  const topPartitionIndex = fp.findIndex(
+    partitionStartingIndex => partitionStartingIndex > verticalTransform,
+    partitions
   ) - 1;
   return { topPartitionIndex, verticalTransform };
 }
@@ -193,7 +185,7 @@ function getScrollValues(preClampTransform, maxHeight, partitions) {
  * @return {object}           a style object representing a the given width
  */
 function getWidthStyle(width = 0) {
-  return _.isNumber(width) && width > 0 ? {
+  return fp.isNumber(width) && width > 0 ? {
     minWidth: `${width}px`,
     width: `${width}px`
   } : undefined;
