@@ -8,8 +8,8 @@ function avgRowHeight(config) {
     contentHeight,
     rows: { length }
   } = config;
-  return _.assign(config, {
-    avgRowHeight: length && _.ceil(contentHeight / length)
+  return fp.assign(config, {
+    avgRowHeight: length && fp.ceil(contentHeight / length)
   });
 }
 
