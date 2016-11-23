@@ -77,12 +77,12 @@ PropTypes
    - gutters: **object** *(optional)*
      - left: **object** *(optional)*
        - className: **string** *(optional)*
-       - componentClass: **React.Component**
+       - contentComponent: **React.Component**
        - handleClassName: **string** *(optional)*
        - props: **object** *(optional)*
      - right: **object** *(optional)*
        - className: **string** *(optional)*
-       - componentClass: **React.Component**
+       - contentComponent: **React.Component**
        - handleClassName: **string** *(optional)*
        - props: **object** *(optional)*
    - height: **number**

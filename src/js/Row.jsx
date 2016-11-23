@@ -20,19 +20,19 @@ class Row extends React.Component {
 
   _getRenderableGutter(side, index, {
     className: thisGutterClassName,
-    componentClass: ComponentClass,
+    contentComponent: ContentComponent,
     props = {}
   } = {}, width, gutterClassName) {
     const gutterStyle = utils.getWidthStyle(width);
     const className = classnames('rickscroll__gutter', gutterClassName, thisGutterClassName);
-    return ComponentClass && gutterStyle ? (
+    return ContentComponent && gutterStyle ? (
       <span className={className} style={gutterStyle}>
-        <ComponentClass key={`gutter-${side}`} {...props} />
+        <ContentComponent key={`gutter-${side}`} {...props} />
       </span>
     ) : undefined;
   }
 
-  _getRenderableHandle(side, { componentClass, handleClassName: thisHandleClassName } = {}, width, handleClassName) {
+  _getRenderableHandle(side, { contentComponent, handleClassName: thisHandleClassName } = {}, width, handleClassName) {
     const {
       guttersConfig: {
         [side]: {
@@ -49,7 +49,7 @@ class Row extends React.Component {
       { 'rickscroll__handle--grabbable': !!onGutterResize },
       `rickscroll__handle--${side}`
     );
-    return componentClass && handleStyle ? (
+    return contentComponent && handleStyle ? (
       <span
         className={className}
         key={`handle-${side}`}

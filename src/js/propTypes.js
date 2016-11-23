@@ -29,7 +29,7 @@ const horizontalScrollConfig = types.shape({
 
 const rowGutter = types.shape({
   className: types.string,
-  componentClass: renderableComponent.isRequired,
+  contentComponent: renderableComponent.isRequired,
   handleClassName: types.string,
   props: types.object
 });
@@ -94,7 +94,7 @@ function validateGutter(props, side, location) {
     return new Error(`Invalid ${fullLocation} \`className\` supplied to \`Rickscroll\`.`);
   }
 
-  const invalid = validateRenderable(gutterProp, 'componentClass', fullLocation);
+  const invalid = validateRenderable(gutterProp, 'contentComponent', fullLocation);
   if (invalid) {
     return invalid;
   }
