@@ -45,6 +45,7 @@ const row = types.shape({
   contentComponent: renderableComponent.isRequired,
   gutters,
   height: types.number.isRequired,
+  key: types.string,
   props: types.object
 });
 
@@ -165,6 +166,31 @@ function validateRow(props, location) {
   return null;
 }
 
+function validateRows(rows, locationSuffix) {
+  const keySet = new Set();
+  const invalidRow = findInvalid(rows, (listRow, index) => {
+    if (listRow.key) {
+      // covers the case where we have a duplicate key
+      if (keySet.has(listRow.key)) {
+        return new Error(`Invalid props supplied to \`Rickscroll\`. Duplicate row key ${listRow.key}.`);
+      }
+
+      keySet.add(listRow.key);
+    } else if (keySet.size) {
+      return new Error(`Invalid props supplied to \`Rickscroll\`. Missing row key at ${index}.`);
+    }
+
+    return validateRow(listRow, `${locationSuffix}[${index}]`);
+  });
+
+  // covers the case where some rows don't have a key
+  if (!invalidRow && keySet.size !== 0 && keySet.size !== rows.length) {
+    return new Error('Invalid props supplied to `Rickscroll`. Missing keys on row declarations.');
+  }
+
+  return invalidRow;
+}
+
 function list(props) {
   const { list: listProp, lists: listsProp } = props;
 
@@ -180,7 +206,7 @@ function list(props) {
     return new Error('Invalid prop `list` supplied to `Rickscroll`. Must be an array.');
   }
 
-  return findInvalid(listProp, (listRow, index) => validateRow(listRow, `list[${index}]`)) || null;
+  return validateRows(listProp, 'list');
 }
 
 function lists(props) {
@@ -203,9 +229,9 @@ function lists(props) {
       return new Error(`Invalid lists[${containerIndex}] \`headerClassName\` supplied to \`Rickscroll\`.`);
     }
 
-    let invalid = validateRenderable(listContainer, 'headerComponent', `lists[${containerIndex}]`);
-    if (invalid) {
-      return invalid;
+    const invalidRenderable = validateRenderable(listContainer, 'headerComponent', `lists[${containerIndex}]`);
+    if (invalidRenderable) {
+      return invalidRenderable;
     }
 
     if (!_.isUndefined(listContainer.headerProps) && !_.isObject(listContainer.headerProps)) {
@@ -220,12 +246,7 @@ function lists(props) {
       return new Error(`Invalid lists[${containerIndex}] \`initCollapsed\` supplied to \`Rickscroll\`.`);
     }
 
-    invalid = findInvalid(listContainer.rows, (listRow, rowIndex) => validateRow(listRow, `lists.rows[${rowIndex}]`));
-    if (invalid) {
-      return invalid;
-    }
-
-    return null;
+    return validateRows(listContainer.rows, 'lists.rows');
   });
 }
 
