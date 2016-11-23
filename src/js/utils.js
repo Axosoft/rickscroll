@@ -91,6 +91,7 @@ function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSections = []
           contentComponent: listItem.headerComponent,
           height: listItem.height,
           isHeader: true,
+          key: listItem.headerKey,
           props: listItem.headerProps
         };
       }

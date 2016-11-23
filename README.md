@@ -86,10 +86,12 @@ PropTypes
        - handleClassName: **string** *(optional)*
        - props: **object** *(optional)*
    - height: **number**
+   - key: **string** *(optional)*
    - props: **object** *(optional)*
  - lists \*: **array** of **objects** containing
    - headerClassName: **string** *(optional)*
    - headerComponent: **React.Component**
+   - headerKey: **string** *(optional)*
    - headerProps: **object** *(optional)*
    - height: **number**
    - initCollapsed: **boolean** *(optional)*
@@ -102,6 +104,13 @@ PropTypes
    - scrollbarWidth: **number** *(optional)* - [default: 15]
 
 \* rickscroll requires only one of list/lists. One must be set and no more than one should be set.
+
+Keying Rows
+------
+If you choose to use the optional keys on the headers and rows, it's all-or-none.
+You must supply completely unique keys to all rows + headers, which are pooled together.
+If some keys are undefined, an error will occur. If some keys are duplicated, an error will occur.
+It's very important that these keys are unique, because if keys collide, you will see missing rows in viewable area.
 
 Dependencies
 ------

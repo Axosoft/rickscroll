@@ -121,9 +121,9 @@ class Row extends React.Component {
     let contentComponent;
     if (horizontalTransform !== undefined && !isHeader) {
       contentComponent = passthroughOffsets
-        ? <ContentComponent key='content' offset={horizontalTransform} {...rowProps} />
+        ? <ContentComponent key='content' offset={horizontalTransform || 0} {...rowProps} />
         : (
-            <HorizontalWrapper key='content' offset={horizontalTransform}>
+            <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
               <ContentComponent {...rowProps} />
             </HorizontalWrapper>
           );

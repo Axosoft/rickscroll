@@ -166,8 +166,8 @@ function validateRow(props, location) {
   return null;
 }
 
-function validateRows(rows, locationSuffix) {
-  const keySet = new Set();
+function validateRows(rows, locationSuffix, keySet = new Set()) {
+  const initialKeyCount = keySet.size;
   const invalidRow = findInvalid(rows, (listRow, index) => {
     if (listRow.key) {
       // covers the case where we have a duplicate key
@@ -183,12 +183,16 @@ function validateRows(rows, locationSuffix) {
     return validateRow(listRow, `${locationSuffix}[${index}]`);
   });
 
+  if (invalidRow) {
+    return invalidRow;
+  }
+
   // covers the case where some rows don't have a key
-  if (!invalidRow && keySet.size !== 0 && keySet.size !== rows.length) {
+  if (keySet.size !== 0 && ((keySet.size - initialKeyCount) !== rows.length)) {
     return new Error('Invalid props supplied to `Rickscroll`. Missing keys on row declarations.');
   }
 
-  return invalidRow;
+  return null;
 }
 
 function list(props) {
@@ -224,7 +228,11 @@ function lists(props) {
     return new Error('Invalid prop `lists` supplied to `Rickscroll`. Must be an array.');
   }
 
-  return findInvalid(listsProp, (listContainer, containerIndex) => {
+  // used to catch duplicate or missing keys
+  const keySet = new Set();
+  let numberOfNonHeaderRows = 0;
+
+  const listsAreInvalid = findInvalid(listsProp, (listContainer, containerIndex) => {
     if (!_.isUndefined(props.headerClassName) && !_.isString(props.headerClassName)) {
       return new Error(`Invalid lists[${containerIndex}] \`headerClassName\` supplied to \`Rickscroll\`.`);
     }
@@ -232,6 +240,15 @@ function lists(props) {
     const invalidRenderable = validateRenderable(listContainer, 'headerComponent', `lists[${containerIndex}]`);
     if (invalidRenderable) {
       return invalidRenderable;
+    }
+
+    if (listContainer.headerKey) {
+      if (keySet.has(listContainer.headerKey)) {
+        return new Error(`Duplicate \`headerKey\` at lists[${containerIndex}] supplied to \`Rickscroll\`.`);
+      }
+      keySet.add(listContainer.headerKey);
+    } else if (keySet.size) {
+      return new Error(`Invalid props supplied to \`Rickscroll\`. Missing headerKey at lists[${containerIndex}].`);
     }
 
     if (!_.isUndefined(listContainer.headerProps) && !_.isObject(listContainer.headerProps)) {
@@ -246,8 +263,36 @@ function lists(props) {
       return new Error(`Invalid lists[${containerIndex}] \`initCollapsed\` supplied to \`Rickscroll\`.`);
     }
 
-    return validateRows(listContainer.rows, 'lists.rows');
+    const initalKeyCount = keySet.size;
+    const rowsInvalid = validateRows(listContainer.rows, 'lists.rows', keySet);
+    if (rowsInvalid) {
+      return rowsInvalid;
+    }
+
+    if (listContainer.headerKey && listContainer.rows.length && keySet.size === initalKeyCount) {
+      return new Error(`Invalid props supplied to \`Rickscroll\`. headerKey supplied, but no keys defined for ` +
+        `lists[${containerIndex}] \`rows\`.`);
+    }
+
+    if (!listContainer.headerKey && keySet.size !== initalKeyCount) {
+      return new Error(`Invalid props supplied to \`Rickscroll\`. No headerKey supplied to lists[${containerIndex}]`);
+    }
+
+
+    numberOfNonHeaderRows += listContainer.rows.length;
+
+    return null;
   });
+
+  if (listsAreInvalid) {
+    return listsAreInvalid;
+  }
+
+  if (keySet.size !== 0 && (numberOfNonHeaderRows + listsProp.length) !== keySet.size) {
+    return new Error('Invalid props supplied to `Rickscroll`. Missing keys on header declarations.');
+  }
+
+  return null;
 }
 
 module.exports = {

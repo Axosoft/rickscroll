@@ -366,6 +366,7 @@ class Scrollable extends React.Component {
               gutters,
               height,
               isHeader,
+              key,
               props: rowProps
             }, innerIndex) => (
               <Row
@@ -377,7 +378,7 @@ class Scrollable extends React.Component {
                 horizontalTransform={horizontalTransform}
                 index={innerIndex}
                 isHeader={isHeader}
-                key={innerIndex}
+                key={key || innerIndex}
                 onStartResize={this._startResize}
                 passthroughOffsets={passthroughOffsets}
                 rowHeight={height}
@@ -458,7 +459,7 @@ class Scrollable extends React.Component {
         <div className='rickscroll__header-gutter rickscroll__header-gutter--top' key='top-header-gutter'>
           {_.times(nextHeaderIndex, headerIndex => {
             const { index: headerRowIndex } = headers[headerIndex];
-            const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
+            const { className, contentComponent, height, key, props: rowProps } = rows[headerRowIndex];
 
             return (
               <Row
@@ -467,7 +468,7 @@ class Scrollable extends React.Component {
                 guttersConfig={guttersConfig}
                 horizontalTransform={0}
                 index={headerRowIndex}
-                key={headerIndex}
+                key={key || headerIndex}
                 rowHeight={height}
                 rowProps={rowProps}
               />
@@ -519,7 +520,7 @@ class Scrollable extends React.Component {
         <div className='rickscroll__header-gutter rickscroll__header-gutter--bottom' key='bottom-header-gutter'>
           {_(headers).slice(bottomGutterStartIndex).map(({ index: headerRowIndex, lockPosition }, index) => {
             const headerIndex = bottomGutterStartIndex + index;
-            const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
+            const { className, contentComponent, height, key, props: rowProps } = rows[headerRowIndex];
 
             return (
               <Row
@@ -528,7 +529,7 @@ class Scrollable extends React.Component {
                 guttersConfig={guttersConfig}
                 horizontalTransform={0}
                 index={headerRowIndex}
-                key={headerIndex}
+                key={key || headerIndex}
                 rowHeight={height}
                 rowProps={rowProps}
               />
@@ -543,7 +544,7 @@ class Scrollable extends React.Component {
       const { lockPosition } = headers[nextHeaderIndex] || headers[headerIndex];
 
       const { index: headerRowIndex } = headers[headerIndex];
-      const { className, contentComponent, height, props: rowProps } = rows[headerRowIndex];
+      const { className, contentComponent, height, key, props: rowProps } = rows[headerRowIndex];
 
       const headerStyle = {
         height: `${height}px`,
@@ -565,6 +566,7 @@ class Scrollable extends React.Component {
             guttersConfig={guttersConfig}
             horizontalTransform={0}
             index={headerRowIndex}
+            key={key || headerRowIndex}
             rowHeight={height}
             rowProps={rowProps}
           />
