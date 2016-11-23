@@ -1,9 +1,7 @@
-const React = require('react');
-const _ = require('lodash');
+import React, { PropTypes as types } from 'react';
+import _ from 'lodash';
 
-const { PropTypes: types } = React;
-
-class HorizontalWrapper extends React.Component {
+export default class HorizontalWrapper extends React.Component {
   shouldComponentUpdate(nextProps, nextState) {
     return !_.isEqual(nextProps, this.props) || !_.isEqual(nextState, this.state);
   }
@@ -21,5 +19,3 @@ HorizontalWrapper.propTypes = {
   children: types.node.isRequired,
   offset: types.number.isRequired
 };
-
-module.exports = HorizontalWrapper;

@@ -1,4 +1,6 @@
-const Scrollable = require('./Scrollable');
-Scrollable.HorizontalWrapper = require('./HorizontalWrapper');
+import Scrollable from './Scrollable';
+import HorizontalWrapper from './HorizontalWrapper';
+
+Scrollable.HorizontalWrapper = HorizontalWrapper;
 
 module.exports = Scrollable;

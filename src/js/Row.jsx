@@ -1,13 +1,13 @@
-const classnames = require('classnames');
-const constants = require('./constants');
-const HorizontalWrapper = require('./HorizontalWrapper');
-const React = require('react');
-const utils = require('./utils');
-const _ = require('lodash');
+import classnames from 'classnames';
+import React, { PropTypes as types } from 'react';
+import _ from 'lodash';
 
-const { PropTypes: types } = React;
+import * as constants from './constants';
+import HorizontalWrapper from './HorizontalWrapper';
+import * as customTypes from './propTypes';
+import * as utils from './utils';
 
-class Row extends React.Component {
+export default class Row extends React.Component {
   constructor(props) {
     super(props);
     this._getRenderableHandle = this._getRenderableHandle.bind(this);
@@ -149,9 +149,9 @@ class Row extends React.Component {
 Row.propTypes = {
   className: types.string,
   contentClassName: types.string,
-  contentComponent: utils.types.renderableComponent,
-  gutters: utils.types.gutters,
-  guttersConfig: utils.types.guttersConfig,
+  contentComponent: customTypes.renderableComponent,
+  gutters: customTypes.gutters,
+  guttersConfig: customTypes.guttersConfig,
   horizontalTransform: types.number,
   index: types.number.isRequired,
   isHeader: types.bool,
@@ -161,5 +161,3 @@ Row.propTypes = {
   rowHeight: types.number.isRequired,
   rowProps: types.object
 };
-
-module.exports = Row;

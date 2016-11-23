@@ -1,9 +1,8 @@
-const fp = require('lodash/fp');
+import fp from 'lodash/fp';
 
-const constants = require('./constants');
-const types = require('./propTypes');
+import * as constants from './constants';
 
-function avgRowHeight(config) {
+export function avgRowHeight(config) {
   const {
     contentHeight,
     rows: { length }
@@ -21,7 +20,7 @@ function avgRowHeight(config) {
  * @param  {Array}  [collapsedSections=[]]  The collapsedSection state from the scrollable class
  * @return {object}                         Reduces the list/lists into consumable state for the scrollable
  */
-function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSections = []) {
+export function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSections = []) {
   let offsetCount = offsetBuffer - 1;
 
   if (list.length === 0) {
@@ -144,7 +143,7 @@ function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSections = []
  * @param  {number} offsetHeight  the offsetHeight from the vertical scrollbar
  * @return {number}               the difference between contentHeight and offsetHeight
  */
-function getMaxHeight(contentHeight, offsetHeight) {
+export function getMaxHeight(contentHeight, offsetHeight) {
   return contentHeight - offsetHeight;
 }
 
@@ -157,7 +156,7 @@ function getMaxHeight(contentHeight, offsetHeight) {
  * @param  {number} currentPosition  current position of our mouse
  * @return {number}                  the next width of the gutter
  */
-function getResizeWidth(side, minWidth = 0, baseWidth, startingPosition, currentPosition) {
+export function getResizeWidth(side, minWidth = 0, baseWidth, startingPosition, currentPosition) {
   const deltaWidth = startingPosition - currentPosition;
   const modifier = side === constants.handleClass.LEFT ? -1 : 1;
   return Math.max(minWidth, baseWidth + (modifier * deltaWidth));
@@ -171,7 +170,7 @@ function getResizeWidth(side, minWidth = 0, baseWidth, startingPosition, current
  *                                    by index (partitions[5] is the starting vertical transform of the 6th partition)
  * @return {object}                   topPartionIndex and the clamped verticalTransform
  */
-function getScrollValues(preClampTransform, maxHeight, partitions) {
+export function getVerticalScrollValues(preClampTransform, maxHeight, partitions) {
   const verticalTransform = fp.clamp(0, maxHeight, preClampTransform);
   const topPartitionIndex = fp.findIndex(
     partitionStartingIndex => partitionStartingIndex > verticalTransform,
@@ -185,18 +184,9 @@ function getScrollValues(preClampTransform, maxHeight, partitions) {
  * @param  {Number} [width=0] the width we wish to express as a style object
  * @return {object}           a style object representing a the given width
  */
-function getWidthStyle(width = 0) {
+export function getWidthStyle(width = 0) {
   return fp.isNumber(width) && width > 0 ? {
     minWidth: `${width}px`,
     width: `${width}px`
   } : undefined;
 }
-
-module.exports = {
-  buildRowConfig,
-  getMaxHeight,
-  getResizeWidth,
-  getScrollValues,
-  getWidthStyle,
-  types
-};

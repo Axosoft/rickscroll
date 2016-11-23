@@ -24,6 +24,7 @@
     "array-bracket-spacing": 0,
     "comma-dangle": [2, "never"],
     "func-names": 0,
+    "import/prefer-default-export": 0,
     "indent": ["error", 2, { SwitchCase: 0 }],
     "jsx-quotes": [2, "prefer-single"],
     "max-len": [2, 120],

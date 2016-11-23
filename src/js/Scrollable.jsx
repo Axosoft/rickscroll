@@ -1,18 +1,19 @@
-const { AnimationTimer } = require('animation-timer');
-const classnames = require('classnames');
-const constants = require('./constants');
-const { Easer } = require('functional-easing');
-const { Point } = require('./models');
-const React = require('react');
-const Row = require('./Row');
-const utils = require('./utils');
-const _ = require('lodash');
+import { AnimationTimer } from 'animation-timer';
+import classnames from 'classnames';
+import { Easer } from 'functional-easing';
+import React, { PropTypes as types } from 'react';
+import _ from 'lodash';
 
-const { PropTypes: types } = React;
+import * as constants from './constants';
+import * as customTypes from './propTypes';
+import { Point } from './models';
+import Row from './Row';
+import * as utils from './utils';
+
 const easer = new Easer()
   .using('out-cubic');
 
-class Scrollable extends React.Component {
+export default class Scrollable extends React.Component {
   constructor(props) {
     super(props);
     [
@@ -171,7 +172,7 @@ class Scrollable extends React.Component {
     if (shouldRender.verticalScrollbar) {
       const maxHeight = utils.getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
       const verticalTransform = this.state.verticalTransform + deltaY;
-      _.assign(scrollChanges, utils.getScrollValues(verticalTransform, maxHeight, partitions));
+      _.assign(scrollChanges, utils.getVerticalScrollValues(verticalTransform, maxHeight, partitions));
     }
 
     // horizontal scrolling
@@ -255,7 +256,7 @@ class Scrollable extends React.Component {
       // vertical
       if (shouldRender.verticalScrollbar) {
         const maxHeight = utils.getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
-        _.assign(scrollChanges, utils.getScrollValues(newTransform.y, maxHeight, partitions));
+        _.assign(scrollChanges, utils.getVerticalScrollValues(newTransform.y, maxHeight, partitions));
       }
 
       // horizontal scrolling
@@ -313,7 +314,7 @@ class Scrollable extends React.Component {
 
     const maxHeight = utils.getMaxHeight(contentHeight, offsetHeight);
 
-    this.setState(utils.getScrollValues(scrollTop, maxHeight, partitions));
+    this.setState(utils.getVerticalScrollValues(scrollTop, maxHeight, partitions));
   }
 
   _renderContents() {
@@ -912,16 +913,14 @@ class Scrollable extends React.Component {
 
 Scrollable.propTypes = {
   className: types.string,
-  guttersConfig: utils.types.guttersConfig,
-  headerType: utils.types.headerType,
-  horizontalScrollConfig: utils.types.horizontalScrollConfig,
-  list: utils.types.list,
-  lists: utils.types.lists,
+  guttersConfig: customTypes.guttersConfig,
+  headerType: customTypes.headerType,
+  horizontalScrollConfig: customTypes.horizontalScrollConfig,
+  list: customTypes.list,
+  lists: customTypes.lists,
   parentHeight: types.number,
   parentWidth: types.number,
-  scrollTo: utils.types.scrollTo,
+  scrollTo: customTypes.scrollTo,
   style: types.object,
-  verticalScrollConfig: utils.types.verticalScrollConfig
+  verticalScrollConfig: customTypes.verticalScrollConfig
 };
-
-module.exports = Scrollable;

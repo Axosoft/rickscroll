@@ -1,10 +1,14 @@
-const { isValidElement, PropTypes: types } = require('react');
-const constants = require('./constants');
-const _ = require('lodash');
+import {
+  isValidElement,
+  PropTypes as types
+} from 'react';
+import _ from 'lodash';
 
-const renderableComponent = types.oneOfType([types.func, types.element]);
+import * as constants from './constants';
 
-const gutterConfig = types.shape({
+export const renderableComponent = types.oneOfType([types.func, types.element]);
+
+export const gutterConfig = types.shape({
   className: types.string,
   handleClassName: types.string,
   handleWidth: types.number,
@@ -13,33 +17,33 @@ const gutterConfig = types.shape({
   width: types.number
 });
 
-const guttersConfig = types.shape({
+export const guttersConfig = types.shape({
   left: gutterConfig,
   right: gutterConfig
 });
 
-const headerType = types.oneOf(_.values(constants.headerType));
+export const headerType = types.oneOf(_.values(constants.headerType));
 
-const horizontalScrollConfig = types.shape({
+export const horizontalScrollConfig = types.shape({
   className: types.string,
   contentWidth: types.number.isRequired,
   passthroughOffsets: types.bool,
   scrollbarHeight: types.number
 });
 
-const rowGutter = types.shape({
+export const rowGutter = types.shape({
   className: types.string,
   contentComponent: renderableComponent.isRequired,
   handleClassName: types.string,
   props: types.object
 });
 
-const gutters = types.shape({
+export const gutters = types.shape({
   left: rowGutter,
   right: rowGutter
 });
 
-const row = types.shape({
+export const row = types.shape({
   className: types.string,
   contentClassName: types.string,
   contentComponent: renderableComponent.isRequired,
@@ -49,12 +53,12 @@ const row = types.shape({
   props: types.object
 });
 
-const scrollTo = types.shape({
+export const scrollTo = types.shape({
   x: types.number,
   y: types.number
 });
 
-const verticalScrollConfig = types.shape({
+export const verticalScrollConfig = types.shape({
   className: types.string,
   scrollbarWidth: types.number
 });
@@ -195,7 +199,7 @@ function validateRows(rows, locationSuffix, keySet = new Set()) {
   return null;
 }
 
-function list(props) {
+export function list(props) {
   const { list: listProp, lists: listsProp } = props;
 
   if ((!listProp && !listsProp) || (listProp && listsProp)) {
@@ -213,7 +217,7 @@ function list(props) {
   return validateRows(listProp, 'list');
 }
 
-function lists(props) {
+export function lists(props) {
   const { list: listProp, lists: listsProp } = props;
 
   if ((!listProp && !listsProp) || (listProp && listsProp)) {
@@ -270,7 +274,7 @@ function lists(props) {
     }
 
     if (listContainer.headerKey && listContainer.rows.length && keySet.size === initalKeyCount) {
-      return new Error(`Invalid props supplied to \`Rickscroll\`. headerKey supplied, but no keys defined for ` +
+      return new Error('Invalid props supplied to `Rickscroll`. headerKey supplied, but no keys defined for ' +
         `lists[${containerIndex}] \`rows\`.`);
     }
 
@@ -294,18 +298,3 @@ function lists(props) {
 
   return null;
 }
-
-module.exports = {
-  gutterConfig,
-  gutters,
-  guttersConfig,
-  headerType,
-  horizontalScrollConfig,
-  list,
-  lists,
-  renderableComponent,
-  row,
-  rowGutter,
-  scrollTo,
-  verticalScrollConfig
-};
