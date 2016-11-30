@@ -337,6 +337,7 @@ export default class Scrollable extends React.Component {
       props: {
         guttersConfig,
         horizontalScrollConfig: {
+          contentWidth,
           passthroughOffsets = false
         } = {},
         verticalScrollConfig: {
@@ -353,6 +354,10 @@ export default class Scrollable extends React.Component {
         verticalTransform
       }
     } = this;
+
+    const contentAreaWidth = this._contents
+      ? this._contents.clientWidth
+      : contentWidth;
 
     const contentsStyle = shouldRender.verticalScrollbar ? {
       width: `calc(100% - ${scrollbarWidth}px)`
@@ -387,6 +392,7 @@ export default class Scrollable extends React.Component {
             }, innerIndex) => (
               <Row
                 className={className}
+                contentAreaWidth={contentAreaWidth}
                 contentClassName={contentClassName}
                 contentComponent={contentComponent}
                 gutters={gutters}
@@ -410,6 +416,7 @@ export default class Scrollable extends React.Component {
 
     const getContentsRef = r => { this._contents = r; };
 
+    // TODO remove partitions and shift the contents of the div
     return (
       <div className='rickscroll__contents' key='contents' ref={getContentsRef} style={contentsStyle}>
         {header}

@@ -5,7 +5,7 @@ import _ from 'lodash';
 import * as constants from './constants';
 import HorizontalWrapper from './HorizontalWrapper';
 import * as customTypes from './propTypes';
-import * as utils from './utils';
+import { getWidthStyle, returnWidthIfComponentExists } from './utils';
 
 export default class Row extends React.Component {
   constructor(props) {
@@ -23,7 +23,7 @@ export default class Row extends React.Component {
     contentComponent: ContentComponent,
     props = {}
   } = {}, width, gutterClassName) {
-    const gutterStyle = utils.getWidthStyle(width);
+    const gutterStyle = getWidthStyle(width);
     const className = classnames('rickscroll__gutter', gutterClassName, thisGutterClassName);
     return ContentComponent && gutterStyle ? (
       <span className={className} style={gutterStyle}>
@@ -41,7 +41,7 @@ export default class Row extends React.Component {
       } = {},
       onStartResize = (() => () => {})
     } = this.props;
-    const handleStyle = utils.getWidthStyle(width);
+    const handleStyle = getWidthStyle(width);
     const className = classnames(
       handleClassName,
       thisHandleClassName,
@@ -62,6 +62,7 @@ export default class Row extends React.Component {
   render() {
     const {
       className: thisRowClassName,
+      contentAreaWidth,
       contentComponent: ContentComponent,
       contentClassName: thisContentClassName,
       guttersConfig: {
@@ -118,17 +119,26 @@ export default class Row extends React.Component {
       rightHandleClassName
     );
 
+    const widthOfEverythingButCenterComponent = returnWidthIfComponentExists(leftGutterWidth, leftComponent)
+      + returnWidthIfComponentExists(leftHandleWidth, leftHandleComponent)
+      + returnWidthIfComponentExists(rightGutterWidth, rightComponent)
+      + returnWidthIfComponentExists(rightHandleWidth, rightHandleComponent);
+
+    const viewWidth = contentAreaWidth
+      ? contentAreaWidth - widthOfEverythingButCenterComponent
+      : 0;
+
     let contentComponent;
     if (horizontalTransform !== undefined && !isHeader) {
       contentComponent = passthroughOffsets
-        ? <ContentComponent key='content' offset={horizontalTransform || 0} {...rowProps} />
+        ? <ContentComponent key='content' offset={horizontalTransform || 0} {...rowProps} viewWidth={viewWidth} />
         : (
             <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
-              <ContentComponent {...rowProps} />
+              <ContentComponent {...rowProps} viewWidth={viewWidth} />
             </HorizontalWrapper>
           );
     } else {
-      contentComponent = <ContentComponent key='content' {...rowProps} />;
+      contentComponent = <ContentComponent key='content' {...rowProps} viewWidth={viewWidth} />;
     }
 
     const rowClassName = classnames('rickscroll__row', thisRowClassName);
@@ -148,6 +158,7 @@ export default class Row extends React.Component {
 
 Row.propTypes = {
   className: types.string,
+  contentAreaWidth: types.number,
   contentClassName: types.string,
   contentComponent: customTypes.renderableComponent,
   gutters: customTypes.gutters,

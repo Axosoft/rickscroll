@@ -190,3 +190,6 @@ export function getWidthStyle(width = 0) {
     width: `${width}px`
   } : undefined;
 }
+
+export const returnWidthIfComponentExists = (width, component) =>
+  component ? width : 0;
