@@ -27,6 +27,7 @@ export const headerType = types.oneOf(_.values(constants.headerType));
 export const horizontalScrollConfig = types.shape({
   className: types.string,
   contentWidth: types.number.isRequired,
+  onScroll: types.function,
   passthroughOffsets: types.bool,
   scrollbarHeight: types.number
 });
@@ -60,6 +61,7 @@ export const scrollTo = types.shape({
 
 export const verticalScrollConfig = types.shape({
   className: types.string,
+  onScroll: types.function,
   scrollbarWidth: types.number
 });
 

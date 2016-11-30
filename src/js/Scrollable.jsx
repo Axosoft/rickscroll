@@ -280,8 +280,15 @@ export default class Scrollable extends React.Component {
   }
 
   _onHorizontalScroll() {
+    const {
+      horizontalScrollConfig: {
+        onScroll = () => {}
+      } = {}
+    } = this.props;
+
     const { scrollLeft = 0 } = this._horizontalScrollbar || {};
     this.setState({ horizontalTransform: scrollLeft });
+    onScroll(scrollLeft);
   }
 
   _onMouseWheel({ deltaX, deltaY }) {
@@ -303,6 +310,11 @@ export default class Scrollable extends React.Component {
 
   _onVerticalScroll() {
     const {
+      props: {
+        verticalScrollConfig: {
+          onScroll = () => {}
+        } = {}
+      },
       state: { contentHeight, partitions },
       _verticalScrollbar,
       _verticalScrollbar: { offsetHeight, scrollTop } = {}
@@ -314,7 +326,10 @@ export default class Scrollable extends React.Component {
 
     const maxHeight = utils.getMaxHeight(contentHeight, offsetHeight);
 
-    this.setState(utils.getVerticalScrollValues(scrollTop, maxHeight, partitions));
+    const nextScrollState = utils.getVerticalScrollValues(scrollTop, maxHeight, partitions);
+
+    this.setState(nextScrollState);
+    onScroll(nextScrollState.verticalTransform);
   }
 
   _renderContents() {

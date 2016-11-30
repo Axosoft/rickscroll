@@ -70,6 +70,7 @@ PropTypes
    - contentWidth: **number**
    - passthroughOffsets: **bool** *(optional)* - [default: false]
    - scrollbarHeight: **number** *(optional)* - [default: 15]
+   - onScroll: **function(number)** *(optional)*
  - list \*: **array** of **objects** containing
    - className: **string** *(optional)*
    - contentClassName: **string** *(optional)*
@@ -102,6 +103,7 @@ PropTypes
  - verticalScrollConfig: **object** *(optional)*
    - className: **string** *(optional)*
    - scrollbarWidth: **number** *(optional)* - [default: 15]
+   - onScroll: **function(number)** *(optional)*
 
 \* rickscroll requires only one of list/lists. One must be set and no more than one should be set.
 
