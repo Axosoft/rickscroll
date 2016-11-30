@@ -175,7 +175,7 @@ function validateRow(props, location) {
 function validateRows(rows, locationSuffix, keySet = new Set()) {
   const initialKeyCount = keySet.size;
   const invalidRow = findInvalid(rows, (listRow, index) => {
-    if (listRow.key) {
+    if (listRow.key === 0 || listRow.key) {
       // covers the case where we have a duplicate key
       if (keySet.has(listRow.key)) {
         return new Error(`Invalid props supplied to \`Rickscroll\`. Duplicate row key ${listRow.key}.`);
@@ -248,7 +248,7 @@ export function lists(props) {
       return invalidRenderable;
     }
 
-    if (listContainer.headerKey) {
+    if (listContainer.headerKey === 0 || listContainer.headerKey) {
       if (keySet.has(listContainer.headerKey)) {
         return new Error(`Duplicate \`headerKey\` at lists[${containerIndex}] supplied to \`Rickscroll\`.`);
       }
