@@ -636,6 +636,8 @@ export default class Scrollable extends React.Component {
       return null;
     }
 
+    const contentWidth = this._getContentWidth();
+    let adjustedContentWidth = contentWidth;
     let leftWidth;
     let position;
     let scaledWidth;
@@ -645,6 +647,7 @@ export default class Scrollable extends React.Component {
       const cornerWidth = utils.returnWidthIfComponentExists(scrollbarWidth, shouldRenderCorner);
 
       leftWidth = utils.returnWidthIfComponentExists(leftHandleWidth + leftGutterWidth, left);
+      adjustedContentWidth -= leftWidth + rightWidth + cornerWidth;
       position = 'relative';
       scaledWidth = `calc(100% - ${leftWidth}px - ${rightWidth}px - ${cornerWidth}px)`;
     }
@@ -660,8 +663,7 @@ export default class Scrollable extends React.Component {
       width: scaledWidth
     };
 
-    const contentWidth = this._getContentWidth();
-    const fillerStyle = { height: '1px', width: `${contentWidth}px` };
+    const fillerStyle = { height: '1px', width: `${adjustedContentWidth}px` };
 
     const getHorizontalScrollbarRef = r => { this._horizontalScrollbar = r; };
     const horizontalScrollbarClassName = classnames('rickscroll__horizontal-scrollbar', className);
