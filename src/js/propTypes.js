@@ -29,6 +29,7 @@ export const horizontalScrollConfig = types.shape({
   contentWidth: types.number.isRequired,
   onScroll: types.function,
   passthroughOffsets: types.bool,
+  scaleWithCenterContent: types.bool,
   scrollbarHeight: types.number
 });
 

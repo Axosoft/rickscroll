@@ -605,10 +605,26 @@ export default class Scrollable extends React.Component {
   _renderHorizontalScrollbar() {
     const {
       props: {
+        guttersConfig: {
+          left,
+          left: {
+            handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
+            width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
+          } = {},
+          right,
+          right: {
+            handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
+            width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
+          } = {}
+        } = {},
         horizontalScrollConfig,
         horizontalScrollConfig: {
           className,
+          scaleWithCenterContent = false,
           scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
+        } = {},
+        verticalScrollConfig: {
+          scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         } = {}
       },
       state: { shouldRender }
@@ -620,9 +636,30 @@ export default class Scrollable extends React.Component {
       return null;
     }
 
-    const sharedStyle = {
+    let leftWidth;
+    let position;
+    let scaledWidth;
+    if (scaleWithCenterContent) {
+      const shouldRenderCorner = !!horizontalScrollConfig && shouldRender.verticalScrollbar;
+      const rightWidth = utils.returnWidthIfComponentExists(rightHandleWidth + rightGutterWidth, right);
+      const cornerWidth = utils.returnWidthIfComponentExists(scrollbarWidth, shouldRenderCorner);
+
+      leftWidth = utils.returnWidthIfComponentExists(leftHandleWidth + leftGutterWidth, left);
+      position = 'relative';
+      scaledWidth = `calc(100% - ${leftWidth}px - ${rightWidth}px - ${cornerWidth}px)`;
+    }
+
+    const wrapperStyle = {
       height: `${scrollbarHeight}px`
     };
+
+    const scrollBarDivStyle = {
+      height: `${scrollbarHeight}px`,
+      left: leftWidth,
+      position,
+      width: scaledWidth
+    };
+
     const contentWidth = this._getContentWidth();
     const fillerStyle = { height: '1px', width: `${contentWidth}px` };
 
@@ -630,13 +667,13 @@ export default class Scrollable extends React.Component {
     const horizontalScrollbarClassName = classnames('rickscroll__horizontal-scrollbar', className);
 
     return (
-      <div className='rickscroll__bottom-wrapper' style={sharedStyle}>
+      <div className='rickscroll__bottom-wrapper' style={wrapperStyle}>
         <div
           className={horizontalScrollbarClassName}
           key='scrollable'
           onScroll={this._onHorizontalScroll}
           ref={getHorizontalScrollbarRef}
-          style={sharedStyle}
+          style={scrollBarDivStyle}
         >
           <div style={fillerStyle} />
         </div>
