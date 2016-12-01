@@ -96,6 +96,10 @@ export function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSectio
       }
 
       if (isMultiList) {
+        if (!listItem.rows.length) {
+          listIterator++;
+          rowIterator = -1;
+        }
         continue;
       }
     }
@@ -119,8 +123,8 @@ export function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSectio
     rows[insertionIterator++] = row;
 
     if (listItem.rows.length === rowIterator) {
-      rowIterator = -1;
       listIterator++;
+      rowIterator = -1;
     }
   }
 
