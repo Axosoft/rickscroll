@@ -295,6 +295,12 @@ export default class Scrollable extends React.Component {
     this._onThrottledMouseWheel({ deltaX, deltaY });
   }
 
+  /**
+   * Performs a calculation to determine the size difference between each movement of the mouse cursor. Only occurs when
+   * a resize is active. Will call the onResize handler for the gutter that is being resized with the new width of the
+   * gutter.
+   * @param  {number} clientX the position of the mouse cursor horizontally
+   */
   _onResize({ clientX }) {
     const { baseWidth, performing, side, startingPosition } = this.state.resize;
     const {

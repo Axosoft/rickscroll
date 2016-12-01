@@ -57,18 +57,23 @@ PropTypes
      - handleClassName: **string** *(optional)*
      - handleWidth: **number** *(optional)*
      - minWidth: **number** *(optional)*
+     - onResize: **function(number)** *(optional)*
+     - onResizeEnd: **function(number)** *(optional)*
      - width: **number** *(optional)*
    - right: **object** *(optional)*
      - className: **string** *(optional)*
      - handleClassName: **string** *(optional)*
      - handleWidth: **number** *(optional)*
      - minWidth: **number** *(optional)*
+     - onResize: **function(number)** *(optional)*
+     - onResizeEnd: **function(number)** *(optional)*
      - width: **number** *(optional)*
  - headerType: **string** *(optional)* - [default: 'default']
  - horizontalScrollConfig: **object** *(optional)*
    - className: **string** *(optional)*
    - contentWidth: **number**
    - passthroughOffsets: **bool** *(optional)* - [default: false]
+   - scaleWithCenterContent: **bool** *(optional)* - [default: false]
    - scrollbarHeight: **number** *(optional)* - [default: 15]
    - onScroll: **function(number)** *(optional)*
  - list \*: **array** of **objects** containing
