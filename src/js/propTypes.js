@@ -13,7 +13,7 @@ export const gutterConfig = types.shape({
   handleClassName: types.string,
   handleWidth: types.number,
   minWidth: types.number,
-  onGutterResize: types.func,
+  onResize: types.func,
   width: types.number
 });
 

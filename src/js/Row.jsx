@@ -36,7 +36,7 @@ export default class Row extends React.Component {
     const {
       guttersConfig: {
         [side]: {
-          onGutterResize
+          onResize
         } = {}
       } = {},
       onStartResize = (() => () => {})
@@ -46,7 +46,7 @@ export default class Row extends React.Component {
       handleClassName,
       thisHandleClassName,
       'rickscroll__handle',
-      { 'rickscroll__handle--grabbable': !!onGutterResize },
+      { 'rickscroll__handle--grabbable': !!onResize },
       `rickscroll__handle--${side}`
     );
     return contentComponent && handleStyle ? (

@@ -298,13 +298,15 @@ export default class Scrollable extends React.Component {
   _onResize({ clientX }) {
     const { baseWidth, performing, side, startingPosition } = this.state.resize;
     const {
-      [side]: {
-        minWidth,
-        onGutterResize = (() => {})
+      guttersConfig: {
+        [side]: {
+          minWidth,
+          onResize = (() => {})
+        } = {}
       } = {}
-    } = this.props.guttersConfig || {};
+    } = this.props;
     if (performing) {
-      onGutterResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
+      onResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
     }
   }
 
@@ -602,6 +604,10 @@ export default class Scrollable extends React.Component {
     return {};
   }
 
+  /**
+   * Decides whether or not to render the horizontal scroll bar
+   * @return null or a container with horizontal scrollbar and maybe the corner piece
+   */
   _renderHorizontalScrollbar() {
     const {
       props: {
@@ -641,6 +647,10 @@ export default class Scrollable extends React.Component {
     let leftWidth;
     let position;
     let scaledWidth;
+
+    // If the scale with center content flag is enabled, we will adjust the scrollbar to be in the correct position
+    // and set up the width to be equivelant to the center content
+    // we will also have to adjust the size of the filler content by the gutters
     if (scaleWithCenterContent) {
       const shouldRenderCorner = !!horizontalScrollConfig && shouldRender.verticalScrollbar;
       const rightWidth = utils.returnWidthIfComponentExists(rightHandleWidth + rightGutterWidth, right);
@@ -677,13 +687,17 @@ export default class Scrollable extends React.Component {
           ref={getHorizontalScrollbarRef}
           style={scrollBarDivStyle}
         >
-          <div style={fillerStyle} />
+          <div style={fillerStyle} /> {/* this causes the scrollbar to appear */}
         </div>
         {this._renderCorner()}
       </div>
     );
   }
 
+  /**
+   * Decides whether or not to render the vertical scroll bar
+   * @return null or a container with vertical scrollbar
+   */
   _renderVerticalScrollbar() {
     const {
       props: {
@@ -716,7 +730,7 @@ export default class Scrollable extends React.Component {
         ref={getVerticalScrollbarRef}
         style={verticalScrollbarStyle}
       >
-        <div style={fillerStyle} />
+        <div style={fillerStyle} /> {/* this causes the scrollbar to appear */}
       </div>
     );
   }
@@ -736,7 +750,12 @@ export default class Scrollable extends React.Component {
     this.setState({ animation, scrollingToPosition });
   }
 
-  _shouldRenderScrollbars(contentHeightOverride) {
+  /**
+   * Decides which scrollbars should be showing based off of the dimensions of the content and rickscroll container.
+   * @return { horizontalScrollbar, verticalScrollbar } a pair of booleans that tell rickscroll whether or not to render
+   *                                                    the horizontal and vertical scrollbars
+   */
+  _shouldRenderScrollbars() {
     const {
       props: {
         horizontalScrollConfig: {
@@ -752,7 +771,7 @@ export default class Scrollable extends React.Component {
       _scrollable: { clientHeight, clientWidth }
     } = this;
 
-    const contentHeight = contentHeightOverride || contentHeightFromState;
+    const contentHeight = contentHeightFromState;
     const clientHeightTooSmall = clientHeight < contentHeight;
     const clientHeightTooSmallWithHorizontalScrollbar = clientHeight < (contentHeight + scrollbarHeight);
 
@@ -794,6 +813,15 @@ export default class Scrollable extends React.Component {
   }
 
   _stopResize() {
+    const { side } = this.state.resize;
+    const {
+      guttersConfig: {
+        [side]: {
+          onResizeEnd = (() => {}),
+          width
+        } = {}
+      } = {}
+    } = this.props;
     this.setState({
       resize: {
         baseWidth: 0,
@@ -802,6 +830,7 @@ export default class Scrollable extends React.Component {
         startingPosition: 0
       }
     });
+    onResizeEnd(width);
   }
 
   _updateDimensions(prevProps, prevState = {}) {
