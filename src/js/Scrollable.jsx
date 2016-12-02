@@ -8,7 +8,14 @@ import * as constants from './constants';
 import * as customTypes from './propTypes';
 import { Point } from './models';
 import Row from './Row';
-import * as utils from './utils';
+import {
+  buildRowConfig,
+  getMaxHeight,
+  getResizeWidth,
+  getVerticalScrollValues,
+  returnWidthIfComponentExists,
+  triggerAnimationFrameCreator
+} from './utils';
 
 const easer = new Easer()
   .using('out-cubic');
@@ -38,7 +45,7 @@ export default class Scrollable extends React.Component {
       'toggleSection',
       'updateDimensions'
     ].forEach(method => { this[method] = this[method].bind(this); });
-    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_120, { trailing: true });
+    this._onThrottledMouseWheel = triggerAnimationFrameCreator(this._applyScrollChange);
 
     const {
       headerType = constants.headerType.DEFAULT,
@@ -55,7 +62,7 @@ export default class Scrollable extends React.Component {
       headers,
       partitions,
       rows
-    } = utils.buildRowConfig(listContainer, offset, stackingHeaders);
+    } = buildRowConfig(listContainer, offset, stackingHeaders);
 
     this.state = {
       animation: null,
@@ -131,7 +138,7 @@ export default class Scrollable extends React.Component {
         headers,
         partitions,
         rows
-      } = utils.buildRowConfig(nextListContainer, buffers.offset, stackingHeaders, oldCollapsedSections);
+      } = buildRowConfig(nextListContainer, buffers.offset, stackingHeaders, oldCollapsedSections);
       this.setState({ avgRowHeight, collapsedSections, contentHeight, headers, partitions, rows });
     }
 
@@ -170,9 +177,9 @@ export default class Scrollable extends React.Component {
 
     // vertical
     if (shouldRender.verticalScrollbar) {
-      const maxHeight = utils.getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
+      const maxHeight = getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
       const verticalTransform = this.state.verticalTransform + deltaY;
-      _.assign(scrollChanges, utils.getVerticalScrollValues(verticalTransform, maxHeight, partitions));
+      _.assign(scrollChanges, getVerticalScrollValues(verticalTransform, maxHeight, partitions));
     }
 
     // horizontal scrolling
@@ -255,8 +262,8 @@ export default class Scrollable extends React.Component {
 
       // vertical
       if (shouldRender.verticalScrollbar) {
-        const maxHeight = utils.getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
-        _.assign(scrollChanges, utils.getVerticalScrollValues(newTransform.y, maxHeight, partitions));
+        const maxHeight = getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
+        _.assign(scrollChanges, getVerticalScrollValues(newTransform.y, maxHeight, partitions));
       }
 
       // horizontal scrolling
@@ -312,7 +319,7 @@ export default class Scrollable extends React.Component {
       } = {}
     } = this.props;
     if (performing) {
-      onResize(utils.getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
+      onResize(getResizeWidth(side, minWidth, baseWidth, startingPosition, clientX));
     }
   }
 
@@ -332,9 +339,9 @@ export default class Scrollable extends React.Component {
       return;
     }
 
-    const maxHeight = utils.getMaxHeight(contentHeight, offsetHeight);
+    const maxHeight = getMaxHeight(contentHeight, offsetHeight);
 
-    const nextScrollState = utils.getVerticalScrollValues(scrollTop, maxHeight, partitions);
+    const nextScrollState = getVerticalScrollValues(scrollTop, maxHeight, partitions);
 
     this.setState(nextScrollState);
     onScroll(nextScrollState.verticalTransform);
@@ -659,10 +666,10 @@ export default class Scrollable extends React.Component {
     // we will also have to adjust the size of the filler content by the gutters
     if (scaleWithCenterContent) {
       const shouldRenderCorner = !!horizontalScrollConfig && shouldRender.verticalScrollbar;
-      const rightWidth = utils.returnWidthIfComponentExists(rightHandleWidth + rightGutterWidth, right);
-      const cornerWidth = utils.returnWidthIfComponentExists(scrollbarWidth, shouldRenderCorner);
+      const rightWidth = returnWidthIfComponentExists(rightHandleWidth + rightGutterWidth, right);
+      const cornerWidth = returnWidthIfComponentExists(scrollbarWidth, shouldRenderCorner);
 
-      leftWidth = utils.returnWidthIfComponentExists(leftHandleWidth + leftGutterWidth, left);
+      leftWidth = returnWidthIfComponentExists(leftHandleWidth + leftGutterWidth, left);
       adjustedContentWidth -= leftWidth + rightWidth + cornerWidth;
       position = 'relative';
       scaledWidth = `calc(100% - ${leftWidth}px - ${rightWidth}px - ${cornerWidth}px)`;
@@ -918,7 +925,7 @@ export default class Scrollable extends React.Component {
       headers,
       partitions,
       rows
-    } = utils.buildRowConfig(lists, buffers.offset, stackHeaders, oldCollapsedSections);
+    } = buildRowConfig(lists, buffers.offset, stackHeaders, oldCollapsedSections);
     this.setState({ avgRowHeight, collapsedSections, contentHeight, headers, partitions, rows });
   }
 

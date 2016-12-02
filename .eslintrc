@@ -12,7 +12,8 @@
     "react"
   ],
   "globals": {
-    "window": true
+    "window": true,
+    "requestAnimationFrame": true
   },
   "rules": {
     "camelcase": [
