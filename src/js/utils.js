@@ -15,13 +15,12 @@ export function avgRowHeight(config) {
 /**
  * Initializes the reduce call to reduceRowsIntoRowConfig. The step where we convert a list prop into lists is done here
  * @param  {array} list                     List or lists prop.
- * @param  {number} offsetBuffer            The number of rows per partition
  * @param  {boolean} stackHeaders           Signifies that we should do the math to calculate stacking header offsets
  * @param  {Array}  [collapsedSections=[]]  The collapsedSection state from the scrollable class
  * @return {object}                         Reduces the list/lists into consumable state for the scrollable
  */
-export function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSections = []) {
-  let offsetCount = offsetBuffer - 1;
+export function buildRowConfig(list, stackHeaders, collapsedSections = []) {
+  let offsetCount = constants.OFFSET_BUFFER - 1;
 
   if (list.length === 0) {
     return { contentHeight: 0, headers: null, partitions: [], rows: [] };
@@ -62,7 +61,7 @@ export function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSectio
 
       if (listItem.headerComponent) {
         offsetCount++;
-        offsetCount %= offsetBuffer;
+        offsetCount %= constants.OFFSET_BUFFER;
 
         if (offsetCount === 0) {
           partitions.push(contentHeight);
@@ -112,7 +111,7 @@ export function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSectio
     const row = listItem.rows[rowIterator++];
 
     offsetCount++;
-    offsetCount %= offsetBuffer;
+    offsetCount %= constants.OFFSET_BUFFER;
 
     if (offsetCount === 0) {
       partitions.push(contentHeight);
@@ -134,7 +133,6 @@ export function buildRowConfig(list, offsetBuffer, stackHeaders, collapsedSectio
     contentHeight,
     headers,
     stackHeaders,
-    offsetBuffer,
     offsetCount,
     partitions,
     rows
@@ -186,10 +184,9 @@ export function getMaxHeight(contentHeight, offsetHeight) {
  * @param  {number} currentPosition  current position of our mouse
  * @return {number}                  the next width of the gutter
  */
-export function getResizeWidth(side, minWidth = 0, baseWidth, startingPosition, currentPosition) {
+export function getResizeWidth(minWidth = 0, baseWidth, startingPosition, currentPosition) {
   const deltaWidth = startingPosition - currentPosition;
-  const modifier = side === constants.handleClass.LEFT ? -1 : 1;
-  return Math.max(minWidth, baseWidth + (modifier * deltaWidth));
+  return Math.max(minWidth, baseWidth + (-1 * deltaWidth));
 }
 
 /**

@@ -21,4 +21,6 @@ export const RIGHT_GUTTER_WIDTH = 0;
 
 export const RIGHT_HANDLE_WIDTH = 0;
 
+export const OFFSET_BUFFER = 6;
+
 export const VERTICAL_SCROLLBAR_WIDTH = 15;

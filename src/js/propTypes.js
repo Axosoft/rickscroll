@@ -12,9 +12,8 @@ export const gutterConfig = types.shape({
   className: types.string,
   handleClassName: types.string,
   handleWidth: types.number,
-  minWidth: types.number,
-  onResize: types.func,
-  width: types.number
+  position: types.number,
+  onResize: types.func
 });
 
 export const guttersConfig = types.shape({
@@ -53,11 +52,6 @@ export const row = types.shape({
   height: types.number.isRequired,
   key: types.string,
   props: types.object
-});
-
-export const scrollTo = types.shape({
-  x: types.number,
-  y: types.number
 });
 
 export const verticalScrollConfig = types.shape({

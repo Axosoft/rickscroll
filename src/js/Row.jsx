@@ -5,13 +5,12 @@ import _ from 'lodash';
 import * as constants from './constants';
 import HorizontalWrapper from './HorizontalWrapper';
 import * as customTypes from './propTypes';
-import { getWidthStyle, returnWidthIfComponentExists } from './utils';
+import { getWidthStyle } from './utils';
 
 export default class Row extends React.Component {
   constructor(props) {
     super(props);
     this._getRenderableHandle = this._getRenderableHandle.bind(this);
-    this._getRenderableGutter = this._getRenderableGutter.bind(this);
   }
 
   shouldComponentUpdate(nextProps, nextState) {
@@ -62,7 +61,6 @@ export default class Row extends React.Component {
   render() {
     const {
       className: thisRowClassName,
-      contentAreaWidth,
       contentComponent: ContentComponent,
       contentClassName: thisContentClassName,
       guttersConfig: {
@@ -70,13 +68,13 @@ export default class Row extends React.Component {
           className: leftGutterClassName,
           handleClassName: leftHandleClassName,
           handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
-          width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
+          position: leftHandlePosition = constants.LEFT_GUTTER_WIDTH
         } = {},
         right: {
           className: rightGutterClassName,
           handleClassName: rightHandleClassName,
           handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
-          width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
+          position: rightHandlePosition = constants.RIGHT_GUTTER_WIDTH
         } = {}
       } = {},
       gutters = {},
@@ -86,17 +84,19 @@ export default class Row extends React.Component {
       onClick,
       passthroughOffsets,
       rowHeight,
-      rowProps = {}
+      rowProps = {},
+      width
     } = this.props;
     const rowStyle = {
-      height: `${rowHeight}px`
+      height: `${rowHeight}px`,
+      width: `${width}px`
     };
 
     const leftComponent = this._getRenderableGutter(
       constants.handleClass.LEFT,
       index,
       gutters.left,
-      leftGutterWidth,
+      leftHandlePosition,
       leftGutterClassName
     );
     const leftHandleComponent = this._getRenderableHandle(
@@ -109,7 +109,7 @@ export default class Row extends React.Component {
       constants.handleClass.RIGHT,
       index,
       gutters.right,
-      rightGutterWidth,
+      width - rightHandlePosition - rightHandleWidth,
       rightGutterClassName
     );
     const rightHandleComponent = this._getRenderableHandle(
@@ -119,26 +119,17 @@ export default class Row extends React.Component {
       rightHandleClassName
     );
 
-    const widthOfEverythingButCenterComponent = returnWidthIfComponentExists(leftGutterWidth, leftComponent)
-      + returnWidthIfComponentExists(leftHandleWidth, leftHandleComponent)
-      + returnWidthIfComponentExists(rightGutterWidth, rightComponent)
-      + returnWidthIfComponentExists(rightHandleWidth, rightHandleComponent);
-
-    const viewWidth = contentAreaWidth
-      ? contentAreaWidth - widthOfEverythingButCenterComponent
-      : 0;
-
     let contentComponent;
     if (horizontalTransform !== undefined && !isHeader) {
       contentComponent = passthroughOffsets
-        ? <ContentComponent key='content' offset={horizontalTransform || 0} {...rowProps} viewWidth={viewWidth} />
+        ? <ContentComponent key='content' offset={horizontalTransform || 0} {...rowProps} />
         : (
             <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
-              <ContentComponent {...rowProps} viewWidth={viewWidth} />
+              <ContentComponent {...rowProps} />
             </HorizontalWrapper>
           );
     } else {
-      contentComponent = <ContentComponent key='content' {...rowProps} viewWidth={viewWidth} />;
+      contentComponent = <ContentComponent key='content' {...rowProps} />;
     }
 
     const rowClassName = classnames('rickscroll__row', thisRowClassName);
@@ -158,7 +149,6 @@ export default class Row extends React.Component {
 
 Row.propTypes = {
   className: types.string,
-  contentAreaWidth: types.number,
   contentClassName: types.string,
   contentComponent: customTypes.renderableComponent,
   gutters: customTypes.gutters,
@@ -170,5 +160,6 @@ Row.propTypes = {
   onStartResize: types.func,
   passthroughOffsets: types.bool,
   rowHeight: types.number.isRequired,
-  rowProps: types.object
+  rowProps: types.object,
+  width: types.number.isRequired
 };
