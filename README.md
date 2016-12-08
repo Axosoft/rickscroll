@@ -137,14 +137,14 @@ Dynamic column can be one of
  - middle
  - right
 
-When dynamic column is left the handle positions are 0 based with respect to the left border of Rickscroll, such that:
+When dynamic column is right the handle positions are 0 based with respect to the left border of Rickscroll, such that:
 
 ```
 |    |      |               |
 0    l      r               w
 ```
 
-With the right column being dynamic, the positions are 0 indexed from the right border, such that:
+With the left column being dynamic, the positions are 0 indexed from the right border, such that:
 ```
 |               |      |    |
 w               l      r    0
