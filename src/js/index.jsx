@@ -3,10 +3,10 @@ import AutoAdjust from './AutoAdjust';
 import HorizontalWrapper from './HorizontalWrapper';
 import Scrollable from './Scrollable';
 
-const RickScroll = props => <AutoAdjust component={Scrollable} {...props} />;
-RickScroll.Static = Scrollable;
+const Rickscroll = props => <AutoAdjust component={Scrollable} {...props} />;
+Rickscroll.Static = Scrollable;
 
 module.exports = {
-  RickScroll,
+  Rickscroll,
   HorizontalWrapper
 };
