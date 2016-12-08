@@ -51,24 +51,28 @@ Public Methods
 PropTypes
 ------
  - className: **string** *(optional)*
+ - dynamicColumn: **string** *(optional)* - [default: 'middle']
  - guttersConfig: **object** *(optional)*
    - left: **object** *(optional)*
      - className: **string** *(optional)*
      - handleClassName: **string** *(optional)*
      - handleWidth: **number** *(optional)*
-     - minWidth: **number** *(optional)*
+     - maxPosition: **number** *(optional)*
+     - minPosition: **number** *(optional)*
      - onResize: **function(number)** *(optional)*
      - onResizeEnd: **function(number)** *(optional)*
-     - width: **number** *(optional)*
+     - position: **number**
    - right: **object** *(optional)*
      - className: **string** *(optional)*
      - handleClassName: **string** *(optional)*
      - handleWidth: **number** *(optional)*
-     - minWidth: **number** *(optional)*
+     - maxPosition: **number** *(optional)*
+     - minPosition: **number** *(optional)*
      - onResize: **function(number)** *(optional)*
      - onResizeEnd: **function(number)** *(optional)*
-     - width: **number** *(optional)*
+     - position: **number**
  - headerType: **string** *(optional)* - [default: 'default']
+ - heightAdjust: **number** *(optional)* - [default: 0]
  - horizontalScrollConfig: **object** *(optional)*
    - className: **string** *(optional)*
    - contentWidth: **number**
@@ -109,6 +113,8 @@ PropTypes
    - className: **string** *(optional)*
    - scrollbarWidth: **number** *(optional)* - [default: 15]
    - onScroll: **function(number)** *(optional)*
+ - widthAdjust: **number** *(optional)* - [default: 0]
+
 
 \* rickscroll requires only one of list/lists. One must be set and no more than one should be set.
 
@@ -118,6 +124,37 @@ If you choose to use the optional keys on the headers and rows, it's all-or-none
 You must supply completely unique keys to all rows + headers, which are pooled together.
 If some keys are undefined, an error will occur. If some keys are duplicated, an error will occur.
 It's very important that these keys are unique, because if keys collide, you will see missing rows in viewable area.
+
+Positioning the Gutters
+------
+There are 3 columns in Rickscroll, the left gutter, content area, and right gutter.
+The columns are partitioned by a handle, which is specified in the guttersconfig.
+The size of the columns are determined by the size position of the handles.
+There is now a configuration property on Rickscroll for which column inherits dynamic scaling, dynamicColumn.
+
+Dynamic column can be one of
+ - left
+ - middle
+ - right
+
+When dynamic column is left the handle positions are 0 based with respect to the left border of Rickscroll, such that:
+
+```
+|    |      |               |
+0    l      r               w
+```
+
+With the right column being dynamic, the positions are 0 indexed from the right border, such that:
+```
+|               |      |    |
+w               l      r    0
+```
+
+With the middle column being dynamic, the left gutter is indexed off of 0 from the left border and the right gutter is indexed off of 0 from the right border, such that:
+```
+|    |               |      |
+0    l               r      0
+```
 
 Dependencies
 ------
