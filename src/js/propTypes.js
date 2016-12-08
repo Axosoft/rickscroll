@@ -12,7 +12,9 @@ export const gutterConfig = types.shape({
   className: types.string,
   handleClassName: types.string,
   handleWidth: types.number,
-  position: types.number,
+  minPosition: types.number,
+  maxPosition: types.number,
+  position: types.number.isRequired,
   onResize: types.func
 });
 
@@ -20,6 +22,8 @@ export const guttersConfig = types.shape({
   left: gutterConfig,
   right: gutterConfig
 });
+
+export const column = types.oneOf(_.values(constants.columns));
 
 export const headerType = types.oneOf(_.values(constants.headerType));
 

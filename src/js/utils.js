@@ -175,19 +175,112 @@ export function getMaxHeight(contentHeight, offsetHeight) {
   return contentHeight - offsetHeight;
 }
 
-/**
- * calculates the width of a gutter via mouse movement. Also takes into account minWidth bound of a gutter.
- * @param  {string} side             which side are we resizing
- * @param  {Number} [minWidth=0]     the minimum value the gutter may be resized to
- * @param  {number} baseWidth        the width we started with when we began resizing
- * @param  {number} startingPosition position our mouse was in when we started resizing
- * @param  {number} currentPosition  current position of our mouse
- * @return {number}                  the next width of the gutter
- */
-export function getResizeWidth(minWidth = 0, baseWidth, startingPosition, currentPosition) {
-  const deltaWidth = startingPosition - currentPosition;
-  return Math.max(minWidth, baseWidth + (-1 * deltaWidth));
-}
+export const getResizeValues = fp.cond([
+  // Dynamic column : LEFT ---------------------------------------------------------------------------------------------
+  [ // resizing LEFT side
+    fp.isMatch({
+      dynamicColumn: constants.columns.LEFT,
+      side: constants.columns.LEFT
+    }),
+    ({ leftHandleWidth, rightExists, rightHandlePosition, rightHandleWidth, width }) => ({
+      max: width - leftHandleWidth,
+      mod: 1,
+      min: rightExists
+        ? rightHandlePosition + rightHandleWidth
+        : 0
+    })
+  ],
+  [ // resizing RIGHT side
+    fp.isMatch({
+      dynamicColumn: constants.columns.LEFT,
+      side: constants.columns.RIGHT
+    }),
+    ({ leftExists, leftHandlePosition, rightHandleWidth, width }) => ({
+      max: leftExists
+        ? leftHandlePosition - rightHandleWidth
+        : width - rightHandleWidth,
+      mod: 1,
+      min: 0
+    })
+  ],
+  // dynamic column : RIGHT --------------------------------------------------------------------------------------------
+  [ // resizing LEFT side
+    fp.isMatch({
+      dynamicColumn: constants.columns.RIGHT,
+      side: constants.columns.LEFT
+    }),
+    ({ leftHandleWidth, rightExists, rightHandlePosition, width }) => ({
+      max: rightExists
+        ? rightHandlePosition - leftHandleWidth
+        : width - leftHandleWidth,
+      mod: -1,
+      min: 0
+    })
+  ],
+  [ // resizing RIGHT side
+    fp.isMatch({
+      dynamicColumn: constants.columns.RIGHT,
+      side: constants.columns.RIGHT
+    }),
+    ({ leftExists, leftHandlePosition, leftHandleWidth, rightHandleWidth, width }) => ({
+      max: width - rightHandleWidth,
+      mod: -1,
+      min: leftExists
+        ? leftHandlePosition + leftHandleWidth
+        : 0
+    })
+  ],
+  // dynamic column : MIDDLE -------------------------------------------------------------------------------------------
+  [ // resizing LEFT side
+    fp.isMatch({
+      dynamicColumn: constants.columns.MIDDLE,
+      side: constants.columns.LEFT
+    }),
+    ({ leftHandleWidth, rightExists, rightHandlePosition, rightHandleWidth, width }) => ({
+      max: rightExists
+        ? width - (rightHandlePosition + rightHandleWidth) - leftHandleWidth
+        : width - leftHandleWidth,
+      mod: -1,
+      min: 0
+    })
+  ],
+  [ // resizing RIGHT side
+    fp.isMatch({
+      dynamicColumn: constants.columns.MIDDLE,
+      side: constants.columns.RIGHT
+    }),
+    ({ leftExists, leftHandlePosition, leftHandleWidth, rightHandleWidth, width }) => ({
+      max: leftExists
+        ? width - (leftHandlePosition + leftHandleWidth) - rightHandleWidth
+        : width - rightHandleWidth,
+      mod: 1,
+      min: 0
+    })
+  ]
+]);
+
+const getMiddleColumnWidths = ({ leftHandlePosition, rightHandlePosition }) => ({
+  leftGutterWidth: leftHandlePosition,
+  rightGutterWidth: rightHandlePosition
+});
+export const getGutterWidths = fp.cond([
+  [
+    fp.isMatch({ dynamicColumn: constants.columns.LEFT }),
+    ({ leftHandlePosition, leftHandleWidth, rightHandlePosition, width }) => ({
+      leftGutterWidth: width - leftHandlePosition - leftHandleWidth,
+      rightGutterWidth: rightHandlePosition
+    })
+  ],
+  [
+    fp.isMatch({ dynamicColumn: constants.columns.RIGHT }),
+    ({ leftHandlePosition, rightHandlePosition, rightHandleWidth, width }) => ({
+      leftGutterWidth: leftHandlePosition,
+      rightGutterWidth: width - rightHandlePosition - rightHandleWidth
+    })
+  ],
+  [fp.isMatch({ dynamicColumn: constants.columns.MIDDLE }), getMiddleColumnWidths],
+  [fp.stubTrue, getMiddleColumnWidths]
+]);
 
 /**
  * calculates which partition is the top of our renderable content and clamps verticalTransform to within min/max values

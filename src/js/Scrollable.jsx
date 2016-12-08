@@ -10,8 +10,9 @@ import { Point } from './models';
 import Row from './Row';
 import {
   buildRowConfig,
+  getGutterWidths,
   getMaxHeight,
-  getResizeWidth,
+  getResizeValues,
   getVerticalScrollValues,
   returnWidthIfComponentExists,
   triggerAnimationFrameCreator
@@ -78,7 +79,7 @@ export default class Scrollable extends React.Component {
       horizontalTransform: 0,
       partitions,
       resize: {
-        baseWidth: 0,
+        basePosition: 0,
         currentPosition: 0,
         performing: false,
         side: '',
@@ -201,14 +202,16 @@ export default class Scrollable extends React.Component {
   _getContentWidth() {
     const {
       props: {
+        dynamicColumn = constants.columns.MIDDLE,
+        guttersConfig,
         guttersConfig: {
           left: {
             handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
-            position: leftGutterPosition = constants.LEFT_GUTTER_WIDTH
+            position: leftGutterPosition
           } = {},
           right: {
             handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
-            position: rightGutterPosition = constants.RIGHT_GUTTER_WIDTH
+            position: rightGutterPosition
           } = {}
         } = {},
         horizontalScrollConfig: {
@@ -217,12 +220,29 @@ export default class Scrollable extends React.Component {
         width
       }
     } = this;
+
+    let leftGutterWidth;
+    let rightGutterWidth;
+    switch (guttersConfig ? dynamicColumn : constants.columns.MIDDLE) {
+      case constants.columns.LEFT:
+        leftGutterWidth = width - leftGutterPosition - leftHandleWidth;
+        rightGutterWidth = rightGutterPosition;
+        break;
+      case constants.columns.RIGHT:
+        leftGutterWidth = leftGutterPosition;
+        rightGutterWidth = width - rightGutterPosition - rightHandleWidth;
+        break;
+      default:
+        leftGutterWidth = leftGutterPosition;
+        rightGutterWidth = rightGutterPosition;
+    }
+
     return _.sum([
       contentWidth,
-      leftGutterPosition,
+      leftGutterWidth,
       leftHandleWidth,
       rightHandleWidth,
-      width - rightGutterPosition
+      rightGutterWidth
     ]);
   }
 
@@ -321,15 +341,15 @@ export default class Scrollable extends React.Component {
   _getWeightedWidth() {
     const {
       props: {
-        horizontalScrollConfig: {
-          scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
+        verticalScrollConfig: {
+          scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         } = {},
         width
       },
       state: { shouldRender }
     } = this;
 
-    return width - (shouldRender.horizontalScrollbar ? scrollbarHeight : 0);
+    return width - (shouldRender.verticalScrollbar ? scrollbarWidth : 0);
   }
 
   _onHorizontalScroll() {
@@ -355,16 +375,50 @@ export default class Scrollable extends React.Component {
    * @param  {number} clientX the position of the mouse cursor horizontally
    */
   _onResize({ clientX }) {
-    const { baseWidth, performing, side, startingPosition } = this.state.resize;
+    const { basePosition, performing, side, startingPosition } = this.state.resize;
+    const width = this._getWeightedWidth();
     const {
+      dynamicColumn = constants.columns.MIDDLE,
+      guttersConfig,
       guttersConfig: {
+        left,
+        left: {
+          handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
+          position: leftHandlePosition
+        } = {},
+        right,
+        right: {
+          handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
+          position: rightHandlePosition
+        } = {},
         [side]: {
+          minPosition = 0,
+          maxPosition = width,
           onResize = (() => {})
         } = {}
       } = {}
     } = this.props;
     if (performing) {
-      onResize(getResizeWidth(0, baseWidth, startingPosition, clientX));
+      const deltaPosition = startingPosition - clientX;
+      const { max, min, mod } = getResizeValues({
+        dynamicColumn: guttersConfig
+          ? dynamicColumn
+          : constants.columns.MIDDLE,
+        leftExists: Boolean(left),
+        leftHandlePosition,
+        leftHandleWidth,
+        rightExists: Boolean(right),
+        rightHandlePosition,
+        rightHandleWidth,
+        side,
+        width
+      });
+
+      onResize(_.clamp(
+        basePosition + (mod * deltaPosition),
+        Math.max(minPosition, min),
+        Math.min(maxPosition, max)
+      ));
     }
   }
 
@@ -395,6 +449,7 @@ export default class Scrollable extends React.Component {
   _renderContents() {
     const {
       props: {
+        dynamicColumn = constants.columns.MIDDLE,
         guttersConfig,
         horizontalScrollConfig: {
           passthroughOffsets = false
@@ -450,6 +505,7 @@ export default class Scrollable extends React.Component {
                 className={className}
                 contentClassName={contentClassName}
                 contentComponent={contentComponent}
+                dynamicColumn={dynamicColumn}
                 gutters={gutters}
                 guttersConfig={guttersConfig}
                 horizontalTransform={horizontalTransform}
@@ -512,6 +568,7 @@ export default class Scrollable extends React.Component {
   _renderHeader() {
     const {
       props: {
+        dynamicColumn = constants.columns.MIDDLE,
         guttersConfig,
         headerType = constants.headerType.DEFAULT,
         height,
@@ -547,6 +604,7 @@ export default class Scrollable extends React.Component {
               <Row
                 className={className}
                 contentComponent={contentComponent}
+                dynamicColumn={dynamicColumn}
                 guttersConfig={guttersConfig}
                 horizontalTransform={0}
                 index={headerRowIndex}
@@ -608,6 +666,7 @@ export default class Scrollable extends React.Component {
               <Row
                 className={className}
                 contentComponent={contentComponent}
+                dynamicColumn={dynamicColumn}
                 guttersConfig={guttersConfig}
                 horizontalTransform={0}
                 index={headerRowIndex}
@@ -646,6 +705,7 @@ export default class Scrollable extends React.Component {
           <Row
             className={className}
             contentComponent={contentComponent}
+            dynamicColumn={dynamicColumn}
             guttersConfig={guttersConfig}
             horizontalTransform={0}
             index={headerRowIndex}
@@ -670,16 +730,18 @@ export default class Scrollable extends React.Component {
   _renderHorizontalScrollbar() {
     const {
       props: {
+        dynamicColumn = constants.columns.MIDDLE,
+        guttersConfig,
         guttersConfig: {
           left,
           left: {
             handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
-            width: leftGutterWidth = constants.LEFT_GUTTER_WIDTH
+            position: leftHandlePosition
           } = {},
           right,
           right: {
             handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
-            width: rightGutterWidth = constants.RIGHT_GUTTER_WIDTH
+            position: rightHandlePosition
           } = {}
         } = {},
         horizontalScrollConfig,
@@ -702,8 +764,20 @@ export default class Scrollable extends React.Component {
     }
 
     // TODO fix scaleWithCenterContent
-    const contentWidth = this._getContentWidth() - (shouldRender.verticalScrollbar ? scrollbarWidth : 0);
-    let adjustedContentWidth = contentWidth;
+    const contentWidth = this._getContentWidth();
+    const { leftGutterWidth, rightGutterWidth } = getGutterWidths({
+      dynamicColumn: guttersConfig
+        ? dynamicColumn
+        : constants.columns.MIDDLE,
+      leftHandlePosition,
+      leftHandleWidth,
+      rightHandlePosition,
+      rightHandleWidth,
+      width: this._getWeightedWidth()
+    });
+    const shouldRenderCorner = !!horizontalScrollConfig && shouldRender.verticalScrollbar;
+    const cornerWidth = returnWidthIfComponentExists(scrollbarWidth, shouldRenderCorner);
+    let adjustedContentWidth = contentWidth - cornerWidth;
     let leftWidth;
     let position;
     let scaledWidth;
@@ -712,12 +786,10 @@ export default class Scrollable extends React.Component {
     // and set up the width to be equivelant to the center content
     // we will also have to adjust the size of the filler content by the gutters
     if (scaleWithCenterContent) {
-      const shouldRenderCorner = !!horizontalScrollConfig && shouldRender.verticalScrollbar;
       const rightWidth = returnWidthIfComponentExists(rightHandleWidth + rightGutterWidth, right);
-      const cornerWidth = returnWidthIfComponentExists(scrollbarWidth, shouldRenderCorner);
 
       leftWidth = returnWidthIfComponentExists(leftHandleWidth + leftGutterWidth, left);
-      adjustedContentWidth -= leftWidth + rightWidth + cornerWidth;
+      adjustedContentWidth -= leftWidth + rightWidth;
       position = 'relative';
       scaledWidth = `calc(100% - ${leftWidth}px - ${rightWidth}px - ${cornerWidth}px)`;
     }
@@ -834,16 +906,17 @@ export default class Scrollable extends React.Component {
 
   _startResize(side) {
     return ({ clientX }) => {
+      document.addEventListener('mouseup', this._stopResize, { capture: true });
       const {
         guttersConfig: {
           [side]: {
-            position: baseWidth
+            position: basePosition
           }
         } = {}
       } = this.props;
       this.setState({
         resize: {
-          baseWidth,
+          basePosition,
           performing: true,
           side,
           startingPosition: clientX
@@ -853,6 +926,7 @@ export default class Scrollable extends React.Component {
   }
 
   _stopResize() {
+    document.removeEventListener('mouseup', this._stopResize, { capture: true });
     const { side } = this.state.resize;
     const {
       guttersConfig: {
@@ -864,7 +938,7 @@ export default class Scrollable extends React.Component {
     } = this.props;
     this.setState({
       resize: {
-        baseWidth: 0,
+        basePosition: 0,
         performing: false,
         side: '',
         startingPosition: 0
@@ -981,6 +1055,7 @@ export default class Scrollable extends React.Component {
 
 Scrollable.propTypes = {
   className: types.string,
+  dynamicColumn: customTypes.column,
   guttersConfig: customTypes.guttersConfig,
   headerType: customTypes.headerType,
   height: types.number.isRequired,

@@ -5,7 +5,7 @@ import _ from 'lodash';
 import * as constants from './constants';
 import HorizontalWrapper from './HorizontalWrapper';
 import * as customTypes from './propTypes';
-import { getWidthStyle } from './utils';
+import { getGutterWidths, getWidthStyle } from './utils';
 
 export default class Row extends React.Component {
   constructor(props) {
@@ -63,18 +63,22 @@ export default class Row extends React.Component {
       className: thisRowClassName,
       contentComponent: ContentComponent,
       contentClassName: thisContentClassName,
+      dynamicColumn = constants.columns.MIDDLE,
+      guttersConfig,
       guttersConfig: {
+        left: leftCanExist,
         left: {
           className: leftGutterClassName,
           handleClassName: leftHandleClassName,
-          handleWidth: leftHandleWidth = constants.LEFT_HANDLE_WIDTH,
-          position: leftHandlePosition = constants.LEFT_GUTTER_WIDTH
+          handleWidth: leftHandleWidth,
+          position: leftHandlePosition
         } = {},
+        right: rightCanExist,
         right: {
           className: rightGutterClassName,
           handleClassName: rightHandleClassName,
           handleWidth: rightHandleWidth = constants.RIGHT_HANDLE_WIDTH,
-          position: rightHandlePosition = constants.RIGHT_GUTTER_WIDTH
+          position: rightHandlePosition
         } = {}
       } = {},
       gutters = {},
@@ -92,32 +96,51 @@ export default class Row extends React.Component {
       width: `${width}px`
     };
 
-    const leftComponent = this._getRenderableGutter(
-      constants.handleClass.LEFT,
-      index,
-      gutters.left,
+    const { leftGutterWidth, rightGutterWidth } = getGutterWidths({
+      dynamicColumn: guttersConfig
+        ? dynamicColumn
+        : constants.columns.MIDDLE,
       leftHandlePosition,
-      leftGutterClassName
-    );
-    const leftHandleComponent = this._getRenderableHandle(
-      constants.handleClass.LEFT,
-      gutters.left,
       leftHandleWidth,
-      leftHandleClassName
-    );
-    const rightComponent = this._getRenderableGutter(
-      constants.handleClass.RIGHT,
-      index,
-      gutters.right,
-      width - rightHandlePosition - rightHandleWidth,
-      rightGutterClassName
-    );
-    const rightHandleComponent = this._getRenderableHandle(
-      constants.handleClass.RIGHT,
-      gutters.right,
+      rightHandlePosition,
       rightHandleWidth,
-      rightHandleClassName
-    );
+      width
+    });
+
+    const leftComponent = leftCanExist
+      ? this._getRenderableGutter(
+        constants.columns.LEFT,
+        index,
+        gutters.left,
+        leftGutterWidth,
+        leftGutterClassName
+      )
+      : null;
+    const leftHandleComponent = leftCanExist
+      ? this._getRenderableHandle(
+        constants.columns.LEFT,
+        gutters.left,
+        leftHandleWidth,
+        leftHandleClassName
+      )
+      : null;
+    const rightComponent = rightCanExist
+      ? this._getRenderableGutter(
+        constants.columns.RIGHT,
+        index,
+        gutters.right,
+        rightGutterWidth,
+        rightGutterClassName
+      )
+      : null;
+    const rightHandleComponent = rightCanExist
+      ? this._getRenderableHandle(
+        constants.columns.RIGHT,
+        gutters.right,
+        rightHandleWidth,
+        rightHandleClassName
+      )
+      : null;
 
     let contentComponent;
     if (horizontalTransform !== undefined && !isHeader) {
@@ -151,6 +174,7 @@ Row.propTypes = {
   className: types.string,
   contentClassName: types.string,
   contentComponent: customTypes.renderableComponent,
+  dynamicColumn: customTypes.column,
   gutters: customTypes.gutters,
   guttersConfig: customTypes.guttersConfig,
   horizontalTransform: types.number,

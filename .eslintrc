@@ -13,6 +13,7 @@
   ],
   "globals": {
     "window": true,
+    "document": true,
     "requestAnimationFrame": true
   },
   "rules": {
@@ -26,7 +27,7 @@
     "comma-dangle": [2, "never"],
     "func-names": 0,
     "import/prefer-default-export": 0,
-    "indent": ["error", 2, { SwitchCase: 0 }],
+    "indent": ["error", 2, { "SwitchCase": 1 }],
     "jsx-quotes": [2, "prefer-single"],
     "max-len": [2, 120],
     "new-cap": 0,

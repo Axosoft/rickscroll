@@ -1,7 +1,8 @@
 export const ANIMATION_FPS_120 = 1000 / 120;
 
-export const handleClass = {
+export const columns = {
   LEFT: 'left',
+  MIDDLE: 'middle',
   RIGHT: 'right'
 };
 
