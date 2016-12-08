@@ -6,7 +6,7 @@ Basic Usage
 Install with npm: `npm install rickscroll`
 
 ```javascript
-const Rickscroll = require('rickscroll');
+import { Rickscroll } from 'rickscroll';
 
 const list = new Array(10000).fill({}).map(() => ({
   contentComponent() { return <span>Hello world!</span>; },
@@ -72,7 +72,7 @@ PropTypes
      - onResizeEnd: **function(number)** *(optional)*
      - position: **number**
  - headerType: **string** *(optional)* - [default: 'default']
- - heightAdjust: **number** *(optional)* - [default: 0]
+ - heightAdjust: **string** *(optional)*
  - horizontalScrollConfig: **object** *(optional)*
    - className: **string** *(optional)*
    - contentWidth: **number**
@@ -113,7 +113,7 @@ PropTypes
    - className: **string** *(optional)*
    - scrollbarWidth: **number** *(optional)* - [default: 15]
    - onScroll: **function(number)** *(optional)*
- - widthAdjust: **number** *(optional)* - [default: 0]
+ - widthAdjust: **string** *(optional)*
 
 
 \* rickscroll requires only one of list/lists. One must be set and no more than one should be set.
@@ -155,6 +155,26 @@ With the middle column being dynamic, the left gutter is indexed off of 0 from t
 |    |               |      |
 0    l               r      0
 ```
+
+Supplying a Static Width to Rickscroll
+------
+If you have a situation where you need to control the width/height of rickscroll explicitly,
+on the Rickscroll import pull out the Static class:
+
+```javascript
+import { Rickscroll } from 'rickscroll';
+
+const list = new Array(10000).fill({}).map(() => ({
+  contentComponent() { return <span>Hello world!</span>; },
+  height: 20
+}));
+
+function renderList() {
+  return <Rickscroll height={600} list={list} width={800} />;
+}
+```
+
+*Example written in ES6*
 
 Dependencies
 ------

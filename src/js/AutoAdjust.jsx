@@ -74,10 +74,10 @@ export default class AutoAdjust extends React.Component {
 
     const style = {
       height: heightAdjust
-        ? `calc(100% - ${heightAdjust}px)`
+        ? `calc(100% - ${heightAdjust})`
         : '100%',
       width: widthAdjust
-        ? `calc(100% - ${widthAdjust}px)`
+        ? `calc(100% - ${widthAdjust})`
         : '100%'
     };
 
