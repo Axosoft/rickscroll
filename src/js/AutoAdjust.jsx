@@ -1,7 +1,7 @@
 import React, { PropTypes as types } from 'react';
 import ResizeObserver from 'resize-observer-polyfill';
 
-import * as customTypes from './propTypes';
+import Rickscroll from './Scrollable';
 
 export default class AutoAdjust extends React.Component {
   constructor(props) {
@@ -12,8 +12,13 @@ export default class AutoAdjust extends React.Component {
     };
     this._autoAdjustDiv = null;
     this._getRef = this._getRef.bind(this);
+    this._getRickscroll = this._getRickscroll.bind(this);
     this._updateDimensions = this._updateDimensions.bind(this);
     this._resizeObserver = new ResizeObserver(this._updateDimensions);
+    this.scrollRowToMiddle = this.scrollRowToMiddle.bind(this);
+    this.scrollTo = this.scrollTo.bind(this);
+    this.scrollToHeader = this.scrollToHeader.bind(this);
+    this.toggleSection = this.toggleSection.bind(this);
   }
 
   componentDidMount() {
@@ -37,6 +42,10 @@ export default class AutoAdjust extends React.Component {
     this._autoAdjustDiv = ref;
   }
 
+  _getRickscroll(ref) {
+    this._rickscroll = ref;
+  }
+
   _updateDimensions() {
     const {
       _autoAdjustDiv,
@@ -57,10 +66,26 @@ export default class AutoAdjust extends React.Component {
     this.setState({ height, width });
   }
 
+  // forward rickscroll public functions
+  scrollRowToMiddle(...args) {
+    return this._rickscroll && this._rickscroll.scrollRowToMiddle(...args);
+  }
+
+  scrollTo(...args) {
+    return this._rickscroll && this._rickscroll.scrollTo(...args);
+  }
+
+  scrollToHeader(...args) {
+    return this._rickscroll && this._rickscroll.scrollToHeader(...args);
+  }
+
+  toggleSection(...args) {
+    return this._rickscroll && this._rickscroll.toggleSection(...args);
+  }
+
   render() {
     const {
       props: {
-        component: Component,
         heightAdjust,
         widthAdjust,
         ...props
@@ -82,7 +107,7 @@ export default class AutoAdjust extends React.Component {
     };
 
     const child = _autoAdjustDiv
-      ? <Component height={height} {...props} width={width} />
+      ? <Rickscroll height={height} {...props} ref={this._getRickscroll} width={width} />
       : null;
 
     return (
@@ -94,7 +119,6 @@ export default class AutoAdjust extends React.Component {
 }
 
 AutoAdjust.propTypes = {
-  component: customTypes.renderableComponent,
   heightAdjust: types.number,
   widthAdjust: types.number
 };

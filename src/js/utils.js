@@ -30,24 +30,25 @@ export function buildRowConfig(list, stackHeaders, collapsedSections = []) {
 
   const lists = isMultiList ? list : [{ rows: list }];
 
-  let numRows = 0;
+  let numRowsWithoutHeaders = 0;
   let listIterator = lists.length;
-
   while (listIterator--) {
-    numRows += 1 + lists[listIterator].rows.length;
+    numRowsWithoutHeaders += lists[listIterator].rows.length;
   }
 
-  if (!isMultiList) {
-    numRows--;
-  }
+  const numRows = isMultiList
+    ? numRowsWithoutHeaders + lists.length
+    : numRowsWithoutHeaders;
 
   const rows = new Array(numRows);
+  const rowOffsets = new Array(numRowsWithoutHeaders);
   const headers = [];
   const partitions = [];
 
   let controlIterator = numRows;
   let rowIterator = -1;
   let insertionIterator = 0;
+  let offsetInsertionIterator = 0;
   let adjustHeaderOffset = 0;
   let contentHeight = 0;
   let listItem;
@@ -83,7 +84,6 @@ export function buildRowConfig(list, stackHeaders, collapsedSections = []) {
           collapsedSections[listIterator] = Boolean(listItem.initCollapsed);
         }
 
-        contentHeight += listItem.height;
         rows[insertionIterator++] = {
           className: listItem.headerClassName,
           contentComponent: listItem.headerComponent,
@@ -92,6 +92,8 @@ export function buildRowConfig(list, stackHeaders, collapsedSections = []) {
           key: listItem.headerKey,
           props: listItem.headerProps
         };
+
+        contentHeight += listItem.height;
       }
 
       if (isMultiList) {
@@ -117,9 +119,13 @@ export function buildRowConfig(list, stackHeaders, collapsedSections = []) {
       partitions.push(contentHeight);
     }
 
-    contentHeight += row.height;
-
     rows[insertionIterator++] = row;
+    rowOffsets[offsetInsertionIterator++] = {
+      height: row.height,
+      offset: contentHeight
+    };
+
+    contentHeight += row.height;
 
     if (listItem.rows.length === rowIterator) {
       listIterator++;
@@ -135,6 +141,7 @@ export function buildRowConfig(list, stackHeaders, collapsedSections = []) {
     stackHeaders,
     offsetCount,
     partitions,
+    rowOffsets,
     rows
   });
 }
