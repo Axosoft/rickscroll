@@ -14,8 +14,7 @@ import {
   getMaxHeight,
   getResizeValues,
   getVerticalScrollValues,
-  returnWidthIfComponentExists,
-  triggerAnimationFrameCreator
+  returnWidthIfComponentExists
 } from './utils';
 
 const easer = new Easer()
@@ -48,7 +47,7 @@ export default class Scrollable extends React.Component {
       'scrollToHeader',
       'toggleSection'
     ].forEach(method => { this[method] = this[method].bind(this); });
-    this._onThrottledMouseWheel = triggerAnimationFrameCreator(this._applyScrollChange);
+    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_120, { trailing: true });
 
     const {
       headerType = constants.headerType.DEFAULT,

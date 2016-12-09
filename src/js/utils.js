@@ -146,32 +146,6 @@ export function buildRowConfig(list, stackHeaders, collapsedSections = []) {
   });
 }
 
-export const triggerAnimationFrameCreator = callback => {
-  let needFrame = false;
-  let renderingFrame = false;
-  let oldParams = [];
-
-  const triggerAnimationFrame = (...params) => {
-    if (renderingFrame) {
-      needFrame = true;
-      oldParams = params;
-    } else {
-      renderingFrame = true;
-      needFrame = false;
-      requestAnimationFrame(() => {
-        callback(...params);
-        renderingFrame = false;
-      });
-      if (needFrame) {
-        needFrame = false;
-        triggerAnimationFrame(...oldParams);
-      }
-    }
-  };
-
-  return triggerAnimationFrame;
-};
-
 /**
  * assign meaning to math
  * @param  {number} contentHeight the height of the content
