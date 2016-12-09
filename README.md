@@ -44,8 +44,9 @@ Most importantly, Rickscroll will:
 
 Public Methods
 ------
- - scrollRowToMiddle(rowIndex: **integer**): Scrolls the given row index into view with a preference toward the middle of the viewable content. Does not include headers in index calculations.
- - scrollToHeader(headerIndex: **integer**): Scrolls to the header at headerIndex.
+ - scrollTo({ x: **integer**, y: **integer** }): Scrolls to the provided pixel value position.
+ - scrollRowToMiddle(rowIndex: **integer**, x: **integer**): Scrolls the given row index into view with a preference toward the middle of the viewable content. Does not include headers in index calculations.
+ - scrollToHeader(headerIndex: **integer**, x: **integer**): Scrolls to the header at headerIndex.
  - toggleSection(sectionIndex: **integer**): Toggles the visibility of the rows under headerIndex.
  - updateDimensions(): Calling this will internally recalculate the dimensions of rickscroll. Rick scroll is already listening to the window resize event, but if you wrap rickscroll with a resizable container, you may need to call updateDimensions when the resizable container is resized.
 
@@ -108,8 +109,12 @@ PropTypes
    - initCollapsed: **boolean** *(optional)*
    - rows: *(see definition of **list** prop type above)*
  - scrollTo: **object** *(optional)*
-   - x: **number** *(optional)* - [default: 0]
-   - y: **number** *(optional)* - [default: 0]
+   - location: **object** *(optional)*
+     - x: **number** *(optional)* - [default: 0]
+     - y: **number** *(optional)* - [default: 0]
+   - preserveHorizontal: **booelan** *(optional)* - [default: false]
+   - preserveVertical: **booelan** *(optional)* - [default: false]
+   - type: **string** *(optional)* - [default: 'row']
  - verticalScrollConfig: **object** *(optional)*
    - className: **string** *(optional)*
    - scrollbarWidth: **number** *(optional)* - [default: 15]
@@ -176,6 +181,12 @@ function renderList() {
 ```
 
 *Example written in ES6*
+
+Triggering a ScrollTo Event through Props
+------
+There are 3 types of scroll to events that can be triggered, row, header, and position.
+The location property of the scrollTo prop has an x and a y field, when the scroll type is set to header or row, y refers to the index of that header or row.
+X always refers to a pixel value location in the horizontal space.
 
 Dependencies
 ------

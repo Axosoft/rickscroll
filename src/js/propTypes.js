@@ -58,6 +58,16 @@ export const row = types.shape({
   props: types.object
 });
 
+export const scrollTo = types.shape({
+  location: types.shape({
+    x: types.number,
+    y: types.number
+  }),
+  preserveHorizontal: types.bool,
+  preserveVertical: types.bool,
+  type: types.oneOf(_.values(constants.scrollType))
+});
+
 export const verticalScrollConfig = types.shape({
   className: types.string,
   onScroll: types.function,

@@ -12,6 +12,22 @@ export const headerType = {
   STACKING: 'stacking'
 };
 
+export const scrollType = {
+  HEADER: 'header',
+  POSITION: 'position',
+  ROW: 'row'
+};
+
+export const defaultScrollTo = {
+  location: {
+    x: 0,
+    y: 0
+  },
+  preserveHorizontal: false,
+  preserveVertical: false,
+  type: scrollType.ROW
+};
+
 export const LEFT_GUTTER_WIDTH = 0;
 
 export const LEFT_HANDLE_WIDTH = 0;

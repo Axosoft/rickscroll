@@ -43,6 +43,7 @@ export default class Scrollable extends React.Component {
       '_shouldRenderScrollbars',
       '_startResize',
       '_stopResize',
+      '_switchScrollProp',
       'scrollRowToMiddle',
       'scrollToHeader',
       'toggleSection'
@@ -97,6 +98,21 @@ export default class Scrollable extends React.Component {
     };
   }
 
+  componentDidMount() {
+    const {
+      scrollTo: scrollToWithoutDefaults
+    } = this.props;
+
+    if (!scrollToWithoutDefaults) {
+      return;
+    }
+
+    this._switchScrollProp(_.merge(
+      _.cloneDeep(constants.defaultScrollTo),
+      _.cloneDeep(scrollToWithoutDefaults)
+    ));
+  }
+
   componentWillReceiveProps({
     guttersConfig,
     headerType = constants.headerType.DEFAULT,
@@ -104,6 +120,7 @@ export default class Scrollable extends React.Component {
     horizontalScrollConfig,
     list: nextList,
     lists: nextLists,
+    scrollTo: scrollToWithoutDefaults = {},
     verticalScrollConfig,
     width
   }) {
@@ -114,6 +131,7 @@ export default class Scrollable extends React.Component {
         horizontalScrollConfig: prevHorizontalScrollConfig,
         list: prevList,
         lists: prevLists,
+        scrollTo: prevScrollToWithoutDefaults = {},
         verticalScrollConfig: prevVerticalScrollConfig,
         width: prevWidth
       },
@@ -156,6 +174,19 @@ export default class Scrollable extends React.Component {
       || !_.isEqual(prevVerticalScrollConfig, verticalScrollConfig)
     ) {
       this.setState(this._getDimensions(prevAvgRowHeight, prevContentHeight, height, width));
+    }
+
+    const prevScrollTo = _.merge(
+      _.cloneDeep(constants.defaultScrollTo),
+      _.cloneDeep(prevScrollToWithoutDefaults)
+    );
+    const scrollTo = _.merge(
+      _.cloneDeep(constants.defaultScrollTo),
+      _.cloneDeep(scrollToWithoutDefaults)
+    );
+
+    if (!_.isEqual(prevScrollTo, scrollTo)) {
+      this._switchScrollProp(scrollTo);
     }
   }
 
@@ -1027,9 +1058,42 @@ export default class Scrollable extends React.Component {
     onResizeEnd(position);
   }
 
+  _switchScrollProp(scrollTo) {
+    const {
+      horizontalTransform,
+      verticalTransform
+    } = this.state;
+
+    if (
+      (scrollTo.location.x === 0 && scrollTo.location.y === 0)
+      || (scrollTo.preserveHorizontal && scrollTo.preserveVertical)
+    ) {
+      return;
+    }
+
+    const x = scrollTo.preserveHorizontal
+      ? horizontalTransform
+      : scrollTo.location.x;
+    const y = scrollTo.preserveVertical
+      ? verticalTransform
+      : scrollTo.location.y;
+
+    switch (scrollTo.type) {
+      case constants.scrollType.ROW:
+        this.scrollRowToMiddle(y, x);
+        break;
+      case constants.scrollType.HEADER:
+        this.scrollToHeader(y, x);
+        break;
+      default:
+        this.scrollTo({ x, y });
+        break;
+    }
+  }
+
   // public
 
-  scrollRowToMiddle(rowIndex) {
+  scrollRowToMiddle(rowIndex, x = 0) {
     const {
       props: {
         height,
@@ -1057,19 +1121,30 @@ export default class Scrollable extends React.Component {
       ? height - scrollbarHeight
       : height;
     adjustedHeight -= this._getBottomGutterHeight();
-    const adjustedVerticalTransform = verticalTransform + this._getTopGutterHeight();
 
-    if (adjustedVerticalTransform > offset) {
-      this.scrollTo({ y: offset - (adjustedHeight / 2) });
-    } else if (verticalTransform + adjustedHeight < offset + rowHeight) {
-      this.scrollTo({ y: offset - (adjustedHeight / 2) });
-    }
+    const adjustedVerticalTransform = verticalTransform + this._getTopGutterHeight();
+    const needsYScroll = adjustedVerticalTransform > offset
+      || verticalTransform + adjustedHeight < offset + rowHeight;
+    const y = needsYScroll
+      ? offset - (adjustedHeight / 2)
+      : verticalTransform;
+
+    this.scrollTo({ x, y });
   }
 
   scrollTo({ x = 0, y = 0 }) {
+    const {
+      horizontalTransform,
+      verticalTransform
+    } = this.state;
+
     let { animation } = this.state;
     if (animation) {
       animation.stop();
+    }
+
+    if (horizontalTransform === x && verticalTransform === y) {
+      return;
     }
 
     const scrollingToPosition = new Point(x, y);
@@ -1081,7 +1156,7 @@ export default class Scrollable extends React.Component {
     this.setState({ animation, scrollingToPosition });
   }
 
-  scrollToHeader(headerIndex) {
+  scrollToHeader(headerIndex, x = 0) {
     const {
       props: { lists },
       state: { headers }
@@ -1091,7 +1166,7 @@ export default class Scrollable extends React.Component {
       return;
     }
 
-    this.scrollTo({ y: headers[headerIndex].lockPosition });
+    this.scrollTo({ x, y: headers[headerIndex].lockPosition });
   }
 
   toggleSection(sectionIndex) {
@@ -1180,6 +1255,7 @@ Scrollable.propTypes = {
   horizontalScrollConfig: customTypes.horizontalScrollConfig,
   list: customTypes.list,
   lists: customTypes.lists,
+  scrollTo: customTypes.scrollTo,
   style: types.object,
   verticalScrollConfig: customTypes.verticalScrollConfig,
   width: types.number.isRequired
