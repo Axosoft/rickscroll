@@ -107,7 +107,7 @@ export default class AutoAdjust extends React.Component {
     };
 
     const child = _autoAdjustDiv
-      ? <Rickscroll height={height} {...props} ref={this._getRickscroll} width={width} />
+      ? <Rickscroll height={height} {...props} ref={this._getRickscroll} width={width} wrappedWithAutoAdjust />
       : null;
 
     return (
@@ -119,6 +119,6 @@ export default class AutoAdjust extends React.Component {
 }
 
 AutoAdjust.propTypes = {
-  heightAdjust: types.number,
-  widthAdjust: types.number
+  heightAdjust: types.string,
+  widthAdjust: types.string
 };

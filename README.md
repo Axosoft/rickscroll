@@ -53,6 +53,7 @@ Public Methods
 PropTypes
 ------
  - className: **string** *(optional)*
+ - disableBidirectionalScrolling: **bool** *(optional)* - [default: false]
  - dynamicColumn: **string** *(optional)* - [default: 'middle']
  - guttersConfig: **object** *(optional)*
    - left: **object** *(optional)*
@@ -108,6 +109,7 @@ PropTypes
    - height: **number**
    - initCollapsed: **boolean** *(optional)*
    - rows: *(see definition of **list** prop type above)*
+ - onRegisteredScrollTo: **function** *(optional)*
  - scrollTo: **object** *(optional)*
    - location: **object** *(optional)*
      - x: **number** *(optional)* - [default: 0]
@@ -187,6 +189,15 @@ Triggering a ScrollTo Event through Props
 There are 3 types of scroll to events that can be triggered, row, header, and position.
 The location property of the scrollTo prop has an x and a y field, when the scroll type is set to header or row, y refers to the index of that header or row.
 X always refers to a pixel value location in the horizontal space.
+If a onRegisteredScrollTo callback is passed as a prop, Rickscroll will call that when it starts a scrollTo operation.
+
+Listening for Fast Scroll Events
+------
+Rickscroll will pass an additional prop to every row/gutter component describing the speed of a scroll operation.
+The isFastScrolling prop represents whether the velocity of a given scroll event is considered fast.
+If a scroll event has a sufficient velocity, every row will receive the true as isFastScrolling.
+If you are rendering heavy content in every row,
+you can use this prop to render a lighter weight representation of your rows.
 
 Dependencies
 ------

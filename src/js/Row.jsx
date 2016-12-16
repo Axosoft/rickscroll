@@ -22,11 +22,14 @@ export default class Row extends React.Component {
     contentComponent: ContentComponent,
     props = {}
   } = {}, width, gutterClassName) {
+    const {
+      isFastScrolling = false
+    } = this.props;
     const gutterStyle = getWidthStyle(width);
     const className = classnames('rickscroll__gutter', gutterClassName, thisGutterClassName);
     return ContentComponent && gutterStyle ? (
       <span className={className} style={gutterStyle}>
-        <ContentComponent key={`gutter-${side}`} {...props} />
+        <ContentComponent isFastScrolling={isFastScrolling} key={`gutter-${side}`} {...props} />
       </span>
     ) : undefined;
   }
@@ -84,6 +87,7 @@ export default class Row extends React.Component {
       gutters = {},
       horizontalTransform,
       index,
+      isFastScrolling = false,
       isHeader,
       onClick,
       passthroughOffsets,
@@ -145,10 +149,17 @@ export default class Row extends React.Component {
     let contentComponent;
     if (horizontalTransform !== undefined && !isHeader) {
       contentComponent = passthroughOffsets
-        ? <ContentComponent key='content' offset={horizontalTransform || 0} {...rowProps} />
+        ? (
+          <ContentComponent
+            isFastScrolling={isFastScrolling}
+            key='content'
+            offset={horizontalTransform || 0}
+            {...rowProps}
+          />
+        )
         : (
             <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
-              <ContentComponent {...rowProps} />
+              <ContentComponent isFastScrolling={isFastScrolling} {...rowProps} />
             </HorizontalWrapper>
           );
     } else {
@@ -179,6 +190,7 @@ Row.propTypes = {
   guttersConfig: customTypes.guttersConfig,
   horizontalTransform: types.number,
   index: types.number.isRequired,
+  isFastScrolling: types.bool,
   isHeader: types.bool,
   onClick: types.func,
   onStartResize: types.func,

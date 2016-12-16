@@ -28,16 +28,21 @@ export const defaultScrollTo = {
   type: scrollType.ROW
 };
 
+
 export const LEFT_GUTTER_WIDTH = 0;
 
 export const LEFT_HANDLE_WIDTH = 0;
 
 export const HORIZONTAL_SCROLLBAR_HEIGHT = 15;
 
+export const OFFSET_BUFFER = 6;
+
 export const RIGHT_GUTTER_WIDTH = 0;
 
 export const RIGHT_HANDLE_WIDTH = 0;
 
-export const OFFSET_BUFFER = 6;
+export const SCROLL_TO_FAST_SCROLL_FACTOR = 2;
+
+export const USER_INITIATED_FAST_SCROLL_FACTOR = 3 / 4;
 
 export const VERTICAL_SCROLLBAR_WIDTH = 15;

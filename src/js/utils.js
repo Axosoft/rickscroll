@@ -294,3 +294,25 @@ export function getWidthStyle(width = 0) {
 
 export const returnWidthIfComponentExists = (width, component) =>
   component ? width : 0;
+
+export function getVelocityInfo(velocity, queue) {
+  const now = window.performance.now();
+  const velocityQueue = fp.reject(([timestamp]) => timestamp < now - 10, queue);
+
+  if (velocityQueue.length === 20) {
+    velocityQueue.shift();
+  }
+
+  velocityQueue.push([window.performance.now(), velocity]);
+
+  const _averageVelocity = fp.flow([
+    fp.map(fp.last),
+    fp.mean
+  ])(velocityQueue);
+
+  const averageVelocity = fp.isNaN(_averageVelocity)
+    ? Number.POSITIVE_INFINITY
+    : _averageVelocity;
+
+  return { averageVelocity, velocityQueue};
+}
