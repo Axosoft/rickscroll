@@ -215,7 +215,13 @@ export default class Scrollable extends React.Component {
       props: {
         disableBidirectionalScrolling = false,
         height,
-        horizontalScrollConfig
+        horizontalScrollConfig,
+        horizontalScrollConfig: {
+          onScroll: onHorizontalScroll = () => {}
+        } = {},
+        verticalScrollConfig: {
+          onScroll: onVerticalScroll = () => {}
+        } = {}
       },
       state: {
         contentHeight,
@@ -271,11 +277,19 @@ export default class Scrollable extends React.Component {
 
     this.setState(scrollChanges, () => {
       if (shouldRender.verticalScrollbar) {
+        if (_verticalScrollbar.scrollTop !== scrollChanges.verticalTransform) {
+          onVerticalScroll(scrollChanges.verticalTransform);
+        }
         _verticalScrollbar.scrollTop = scrollChanges.verticalTransform;
       }
+
       if (withHorizontalScrolling) {
+        if (_horizontalScrollbar.scrollLeft !== scrollChanges.horizontalTransform) {
+          onHorizontalScroll(scrollChanges.horizontalTransform);
+        }
         _horizontalScrollbar.scrollLeft = scrollChanges.horizontalTransform;
       }
+
       this._endScroll();
     });
   }
@@ -438,7 +452,13 @@ export default class Scrollable extends React.Component {
   _getThrottledAnimationFrameFn(scrollTo) {
     const {
       props: {
-        height
+        height,
+        horizontalScrollConfig: {
+          onScroll: onHorizontalScroll = () => {}
+        } = {},
+        verticalScrollConfig: {
+          onScroll: onVerticalScroll = () => {}
+        } = {}
       },
       state: {
         horizontalTransform,
@@ -504,11 +524,19 @@ export default class Scrollable extends React.Component {
 
       this.setState(scrollChanges, () => {
         if (shouldRender.verticalScrollbar) {
+          if (_verticalScrollbar.scrollTop !== scrollChanges.verticalTransform) {
+            onVerticalScroll(scrollChanges.verticalTransform);
+          }
           _verticalScrollbar.scrollTop = scrollChanges.verticalTransform;
         }
+
         if (withHorizontalScrolling) {
+          if (_horizontalScrollbar.scrollLeft !== scrollChanges.horizontalTransform) {
+            onHorizontalScroll(scrollChanges.horizontalTransform);
+          }
           _horizontalScrollbar.scrollLeft = scrollChanges.horizontalTransform;
         }
+
         this._endScroll();
       });
     }), constants.ANIMATION_FPS_120, { leading: true });
