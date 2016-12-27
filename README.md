@@ -83,6 +83,7 @@ PropTypes
    - scaleWithCenterContent: **bool** *(optional)* - [default: false]
    - scrollbarHeight: **number** *(optional)* - [default: 15]
    - onScroll: **function(number)** *(optional)*
+ - light: **bool** *(optional)*
  - list \*: **array** of **objects** containing
    - className: **string** *(optional)*
    - contentClassName: **string** *(optional)*
@@ -198,6 +199,10 @@ The isFastScrolling prop represents whether the velocity of a given scroll event
 If a scroll event has a sufficient velocity, every row will receive the true as isFastScrolling.
 If you are rendering heavy content in every row,
 you can use this prop to render a lighter weight representation of your rows.
+
+Lighter Render Steps
+------
+Specify light on Rickscroll to bypass all gutter configuration at the row level.
 
 Dependencies
 ------

@@ -6,6 +6,7 @@ import _ from 'lodash';
 
 import * as constants from './constants';
 import * as customTypes from './propTypes';
+import LightweightRow from './LightweightRow';
 import { Point } from './models';
 import Row from './Row';
 import {
@@ -691,6 +692,7 @@ export default class Scrollable extends React.Component {
         horizontalScrollConfig: {
           passthroughOffsets = false
         } = {},
+        light = false,
         verticalScrollConfig: {
           scrollbarWidth = constants.VERTICAL_SCROLLBAR_WIDTH
         } = {}
@@ -739,26 +741,42 @@ export default class Scrollable extends React.Component {
               isHeader,
               key,
               props: rowProps
-            }, innerIndex) => (
-              <Row
-                className={className}
-                contentClassName={contentClassName}
-                contentComponent={contentComponent}
-                dynamicColumn={dynamicColumn}
-                gutters={gutters}
-                guttersConfig={guttersConfig}
-                horizontalTransform={horizontalTransform}
-                index={innerIndex}
-                isFastScrolling={isScrolling && isFastScrolling}
-                isHeader={isHeader}
-                key={key || innerIndex}
-                onStartResize={this._startResize}
-                passthroughOffsets={passthroughOffsets}
-                rowHeight={height}
-                rowProps={rowProps}
-                width={weightedWidth}
-              />
-            )
+            }, innerIndex) => light
+              ? (
+                <LightweightRow
+                  className={className}
+                  contentClassName={contentClassName}
+                  contentComponent={contentComponent}
+                  horizontalTransform={horizontalTransform}
+                  isFastScrolling={isScrolling && isFastScrolling}
+                  isHeader={isHeader}
+                  key={key || innerIndex}
+                  passthroughOffsets={passthroughOffsets}
+                  rowHeight={height}
+                  rowProps={rowProps}
+                  width={weightedWidth}
+                />
+              )
+              : (
+                <Row
+                  className={className}
+                  contentClassName={contentClassName}
+                  contentComponent={contentComponent}
+                  dynamicColumn={dynamicColumn}
+                  gutters={gutters}
+                  guttersConfig={guttersConfig}
+                  horizontalTransform={horizontalTransform}
+                  index={innerIndex}
+                  isFastScrolling={isScrolling && isFastScrolling}
+                  isHeader={isHeader}
+                  key={key || innerIndex}
+                  onStartResize={this._startResize}
+                  passthroughOffsets={passthroughOffsets}
+                  rowHeight={height}
+                  rowProps={rowProps}
+                  width={weightedWidth}
+                />
+              )
           )}
         </div>
       );
@@ -1392,6 +1410,7 @@ Scrollable.propTypes = {
   headerType: customTypes.headerType,
   height: types.number.isRequired,
   horizontalScrollConfig: customTypes.horizontalScrollConfig,
+  light: types.bool,
   list: customTypes.list,
   lists: customTypes.lists,
   onRegisteredScrollTo: types.func,
