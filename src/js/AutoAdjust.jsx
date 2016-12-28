@@ -119,6 +119,6 @@ export default class AutoAdjust extends React.Component {
 }
 
 AutoAdjust.propTypes = {
-  heightAdjust: types.string,
-  widthAdjust: types.string
+  heightAdjust: types.oneOfType([types.string, types.number]),
+  widthAdjust: types.oneOfType([types.string, types.number])
 };
