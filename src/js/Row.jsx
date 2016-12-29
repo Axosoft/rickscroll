@@ -23,13 +23,19 @@ export default class Row extends React.Component {
     props = {}
   } = {}, width, gutterClassName) {
     const {
-      isFastScrolling = false
+      isFastScrolling = false,
+      isScrolling = false
     } = this.props;
     const gutterStyle = getWidthStyle(width);
     const className = classnames('rickscroll__gutter', gutterClassName, thisGutterClassName);
     return ContentComponent && gutterStyle ? (
       <span className={className} style={gutterStyle}>
-        <ContentComponent isFastScrolling={isFastScrolling} key={`gutter-${side}`} {...props} />
+        <ContentComponent
+          isFastScrolling={isFastScrolling}
+          isScrolling={isScrolling}
+          key={`gutter-${side}`}
+          {...props}
+        />
       </span>
     ) : undefined;
   }
@@ -89,6 +95,7 @@ export default class Row extends React.Component {
       index,
       isFastScrolling = false,
       isHeader,
+      isScrolling = false,
       onClick,
       passthroughOffsets,
       rowHeight,
@@ -152,6 +159,7 @@ export default class Row extends React.Component {
         ? (
           <ContentComponent
             isFastScrolling={isFastScrolling}
+            isScrolling={isScrolling}
             key='content'
             offset={horizontalTransform || 0}
             {...rowProps}
@@ -159,11 +167,13 @@ export default class Row extends React.Component {
         )
         : (
             <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
-              <ContentComponent isFastScrolling={isFastScrolling} {...rowProps} />
+              <ContentComponent isFastScrolling={isFastScrolling} isScrolling={isScrolling} {...rowProps} />
             </HorizontalWrapper>
           );
     } else {
-      contentComponent = <ContentComponent key='content' {...rowProps} />;
+      contentComponent = (
+        <ContentComponent isFastScrolling={isFastScrolling} isScrolling={isScrolling} key='content' {...rowProps} />
+      );
     }
 
     const rowClassName = classnames('rickscroll__row', thisRowClassName);
@@ -192,6 +202,7 @@ Row.propTypes = {
   index: types.number.isRequired,
   isFastScrolling: types.bool,
   isHeader: types.bool,
+  isScrolling: types.bool,
   onClick: types.func,
   onStartResize: types.func,
   passthroughOffsets: types.bool,

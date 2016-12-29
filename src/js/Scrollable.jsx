@@ -205,8 +205,12 @@ export default class Scrollable extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    return !_.isEqual(this.props, nextProps) ||
-      !_.isEqual(this.state, nextState);
+    return this.state.verticalTransform !== nextState.verticalTransform
+      || this.state.horizontalTransform !== nextState.horizontalTransform
+      || this.props.height !== nextProps.height
+      || this.props.width !== nextProps.width
+      || !_.isEqual(this.props, nextProps)
+      || !_.isEqual(this.state, nextState);
   }
 
   // private
@@ -750,6 +754,7 @@ export default class Scrollable extends React.Component {
                   horizontalTransform={horizontalTransform}
                   isFastScrolling={isScrolling && isFastScrolling}
                   isHeader={isHeader}
+                  isScrolling={isScrolling}
                   key={key || innerIndex}
                   passthroughOffsets={passthroughOffsets}
                   rowHeight={height}
@@ -769,6 +774,7 @@ export default class Scrollable extends React.Component {
                   index={innerIndex}
                   isFastScrolling={isScrolling && isFastScrolling}
                   isHeader={isHeader}
+                  isScrolling={isScrolling}
                   key={key || innerIndex}
                   onStartResize={this._startResize}
                   passthroughOffsets={passthroughOffsets}
@@ -832,10 +838,13 @@ export default class Scrollable extends React.Component {
         height,
         horizontalScrollConfig: {
           scrollbarHeight = constants.HORIZONTAL_SCROLLBAR_HEIGHT
-        } = {}
+        } = {},
+        light
       },
       state: {
         headers,
+        isScrolling,
+        isFastScrolling,
         rows,
         shouldRender,
         verticalTransform
@@ -858,20 +867,38 @@ export default class Scrollable extends React.Component {
             const { index: headerRowIndex } = headers[headerIndex];
             const { className, contentComponent, height: rowHeight, key, props: rowProps } = rows[headerRowIndex];
 
-            return (
-              <Row
-                className={className}
-                contentComponent={contentComponent}
-                dynamicColumn={dynamicColumn}
-                guttersConfig={guttersConfig}
-                horizontalTransform={0}
-                index={headerRowIndex}
-                key={key || headerIndex}
-                rowHeight={rowHeight}
-                rowProps={rowProps}
-                width={weightedWidth}
-              />
-            );
+            return light
+              ? (
+                <LightweightRow
+                  className={className}
+                  contentComponent={contentComponent}
+                  horizontalTransform={0}
+                  isFastScrolling={isScrolling && isFastScrolling}
+                  isHeader
+                  isScrolling={isScrolling}
+                  key={key || headerIndex}
+                  rowHeight={rowHeight}
+                  rowProps={rowProps}
+                  width={weightedWidth}
+                />
+              )
+              : (
+                <Row
+                  className={className}
+                  contentComponent={contentComponent}
+                  dynamicColumn={dynamicColumn}
+                  guttersConfig={guttersConfig}
+                  horizontalTransform={0}
+                  index={headerRowIndex}
+                  isFastScrolling={isScrolling && isFastScrolling}
+                  isHeader
+                  isScrolling={isScrolling}
+                  key={key || headerIndex}
+                  rowHeight={rowHeight}
+                  rowProps={rowProps}
+                  width={weightedWidth}
+                />
+              );
           })}
         </div>
       );
@@ -920,7 +947,22 @@ export default class Scrollable extends React.Component {
             const headerIndex = bottomGutterStartIndex + index;
             const { className, contentComponent, height: rowHeight, key, props: rowProps } = rows[headerRowIndex];
 
-            return (
+            return light
+             ? (
+               <LightweightRow
+                 className={className}
+                 contentComponent={contentComponent}
+                 horizontalTransform={0}
+                 isFastScrolling={isScrolling && isFastScrolling}
+                 isHeader
+                 isScrolling={isScrolling}
+                 key={key || headerIndex}
+                 rowHeight={rowHeight}
+                 rowProps={rowProps}
+                 width={weightedWidth}
+               />
+             )
+             : (
               <Row
                 className={className}
                 contentComponent={contentComponent}
@@ -928,6 +970,9 @@ export default class Scrollable extends React.Component {
                 guttersConfig={guttersConfig}
                 horizontalTransform={0}
                 index={headerRowIndex}
+                isFastScrolling={isScrolling && isFastScrolling}
+                isHeader
+                isScrolling={isScrolling}
                 key={key || headerIndex}
                 rowHeight={rowHeight}
                 rowProps={rowProps}
@@ -957,9 +1002,22 @@ export default class Scrollable extends React.Component {
         headerStyle.transform = `translate3d(0px, -${headerOffset}px, 0px)`;
       }
 
-
-      const header = (
-        <div className='rickscroll__header' key={`header-${headerRowIndex}`} style={headerStyle}>
+      const rowContent = light
+        ? (
+          <LightweightRow
+            className={className}
+            contentComponent={contentComponent}
+            horizontalTransform={0}
+            isFastScrolling={isScrolling && isFastScrolling}
+            isHeader
+            isScrolling={isScrolling}
+            key={key || headerRowIndex}
+            rowHeight={rowHeight}
+            rowProps={rowProps}
+            width={weightedWidth}
+          />
+        )
+        : (
           <Row
             className={className}
             contentComponent={contentComponent}
@@ -967,11 +1025,19 @@ export default class Scrollable extends React.Component {
             guttersConfig={guttersConfig}
             horizontalTransform={0}
             index={headerRowIndex}
+            isFastScrolling={isScrolling && isFastScrolling}
+            isHeader
+            isScrolling={isScrolling}
             key={key || headerRowIndex}
             rowHeight={rowHeight}
             rowProps={rowProps}
             width={weightedWidth}
           />
+        );
+
+      const header = (
+        <div className='rickscroll__header' key={`header-${headerRowIndex}`} style={headerStyle}>
+          {rowContent}
         </div>
       );
 

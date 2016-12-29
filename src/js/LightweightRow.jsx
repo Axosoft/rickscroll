@@ -11,6 +11,7 @@ const LightweightRow = ({
   horizontalTransform,
   isFastScrolling = false,
   isHeader,
+  isScrolling = false,
   onClick,
   passthroughOffsets,
   rowHeight,
@@ -28,6 +29,7 @@ const LightweightRow = ({
       ? (
         <ContentComponent
           isFastScrolling={isFastScrolling}
+          isScrolling={isScrolling}
           key='content'
           offset={horizontalTransform || 0}
           {...rowProps}
@@ -35,11 +37,13 @@ const LightweightRow = ({
       )
       : (
           <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
-            <ContentComponent isFastScrolling={isFastScrolling} {...rowProps} />
+            <ContentComponent isFastScrolling={isFastScrolling} isScrolling={isScrolling} {...rowProps} />
           </HorizontalWrapper>
         );
   } else {
-    contentComponent = <ContentComponent key='content' {...rowProps} />;
+    contentComponent = (
+      <ContentComponent isFastScrolling={isFastScrolling} isScrolling={isScrolling} key='content' {...rowProps} />
+    );
   }
 
   const rowClassName = classnames('rickscroll__row', thisRowClassName);
@@ -61,6 +65,7 @@ LightweightRow.propTypes = {
   horizontalTransform: types.number,
   isFastScrolling: types.bool,
   isHeader: types.bool,
+  isScrolling: types.bool,
   onClick: types.func,
   passthroughOffsets: types.bool,
   rowHeight: types.number.isRequired,
