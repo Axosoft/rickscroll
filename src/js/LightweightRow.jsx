@@ -4,29 +4,53 @@ import React, { PropTypes as types } from 'react';
 import HorizontalWrapper from './HorizontalWrapper';
 import * as customTypes from './propTypes';
 
-const LightweightRow = ({
-  className: thisRowClassName,
-  contentComponent: ContentComponent,
-  contentClassName: thisContentClassName,
-  horizontalTransform,
-  isFastScrolling = false,
-  isHeader,
-  isScrolling = false,
-  onClick,
-  passthroughOffsets,
-  rowHeight,
-  rowProps = {},
-  width
-}) => {
-  const rowStyle = {
-    height: `${rowHeight}px`,
-    width: `${width}px`
-  };
+export default class LightweightRow extends React.Component {
+  constructor(props) {
+    super(props);
 
-  let contentComponent;
-  if (horizontalTransform !== undefined && !isHeader) {
-    contentComponent = passthroughOffsets
-      ? (
+    this._buildContentComponent = this._buildContentComponent.bind(this);
+    this._cacheMiss = this._cacheMiss.bind(this);
+    this._getContentComponentWithShallowCaching = this._getContentComponentWithShallowCaching.bind(this);
+    this._shouldWrapComponent = this._shouldWrapComponent.bind(this);
+
+    this._cache = {
+      props: {},
+      renderedRow: null
+    };
+  }
+
+  _buildContentComponent() {
+    const {
+      contentComponent: ContentComponent,
+      horizontalTransform,
+      isFastScrolling,
+      isHeader,
+      isScrolling,
+      passthroughOffsets,
+      rowProps
+    } = this.props;
+
+    // save from last render
+    this._cache.props = {
+      horizontalTransform,
+      isFastScrolling,
+      isScrolling,
+      passthroughOffsets,
+      rowProps
+    };
+
+    if (horizontalTransform === undefined || isHeader || !passthroughOffsets) {
+      this._cache.renderedRow = (
+        <ContentComponent
+          isFastScrolling={isFastScrolling}
+          isScrolling={isScrolling}
+          key='content'
+          offset={0}
+          {...rowProps}
+        />
+      );
+    } else {
+      this._cache.renderedRow = (
         <ContentComponent
           isFastScrolling={isFastScrolling}
           isScrolling={isScrolling}
@@ -34,29 +58,70 @@ const LightweightRow = ({
           offset={horizontalTransform || 0}
           {...rowProps}
         />
-      )
-      : (
-          <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
-            <ContentComponent isFastScrolling={isFastScrolling} isScrolling={isScrolling} {...rowProps} />
-          </HorizontalWrapper>
-        );
-  } else {
-    contentComponent = (
-      <ContentComponent isFastScrolling={isFastScrolling} isScrolling={isScrolling} key='content' {...rowProps} />
-    );
+      );
+    }
+
+    return this._cache.renderedRow;
   }
 
-  const rowClassName = classnames('rickscroll__row', thisRowClassName);
-  const contentClassName = classnames('rickscroll__content', thisContentClassName);
+  _cacheMiss() {
+    return !this._cache.renderedRow
+      || this._cache.props.horizontalTransform !== this.props.horizontalTransform
+      || this._cache.props.isFastScrolling !== this.props.isFastScrolling
+      || this._cache.props.isScrolling !== this.props.isScrolling
+      || this._cache.props.passthroughOffsets !== this.props.passthroughOffsets
+      || this._cache.props.rowProps !== this.props.rowProps;
+  }
 
-  return (
-    <div className={rowClassName} onClick={onClick} style={rowStyle}>
-      <span className={contentClassName} key='content-wrapper'>{contentComponent}</span>
-    </div>
-  );
-};
+  _getContentComponentWithShallowCaching() {
+    return this._cacheMiss()
+      ? this._buildContentComponent()
+      : this._cache.renderedRow;
+  }
 
-export default LightweightRow;
+  _shouldWrapComponent() {
+    return this.props.horizontalTransform !== undefined
+      || this.props.isHeader
+      || this.props.passthroughOffsets;
+  }
+
+  render() {
+    const {
+      className: thisRowClassName,
+      contentClassName: thisContentClassName,
+      horizontalTransform,
+      onClick,
+      rowHeight,
+      width
+    } = this.props;
+    const rowStyle = {
+      height: `${rowHeight}px`,
+      width: `${width}px`
+    };
+
+    const contentComponent = this._getContentComponentWithShallowCaching();
+
+    const horizontallyWrappedContentComponent =
+      this._shouldWrapComponent()
+        ? (
+          <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
+            {contentComponent}
+          </HorizontalWrapper>
+        )
+        : contentComponent;
+
+    const rowClassName = classnames('rickscroll__row', thisRowClassName);
+    const contentClassName = classnames('rickscroll__content', thisContentClassName);
+
+    return (
+      <div className={rowClassName} onClick={onClick} style={rowStyle}>
+        <span className={contentClassName} key='content-wrapper'>
+          {horizontallyWrappedContentComponent}
+        </span>
+      </div>
+    );
+  }
+}
 
 LightweightRow.propTypes = {
   className: types.string,
