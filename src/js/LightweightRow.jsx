@@ -24,10 +24,10 @@ export default class LightweightRow extends React.Component {
       contentComponent: ContentComponent,
       horizontalTransform,
       isFastScrolling,
-      isHeader,
       isScrolling,
       passthroughOffsets,
-      rowProps
+      rowProps,
+      scrollsHorizontally
     } = this.props;
 
     // save from last render
@@ -36,10 +36,11 @@ export default class LightweightRow extends React.Component {
       isFastScrolling,
       isScrolling,
       passthroughOffsets,
-      rowProps
+      rowProps,
+      scrollsHorizontally
     };
 
-    if (horizontalTransform === undefined || isHeader || !passthroughOffsets) {
+    if (scrollsHorizontally && !passthroughOffsets) {
       this._cache.renderedRow = (
         <ContentComponent
           isFastScrolling={isFastScrolling}
@@ -70,7 +71,8 @@ export default class LightweightRow extends React.Component {
       || this._cache.props.isFastScrolling !== this.props.isFastScrolling
       || this._cache.props.isScrolling !== this.props.isScrolling
       || this._cache.props.passthroughOffsets !== this.props.passthroughOffsets
-      || this._cache.props.rowProps !== this.props.rowProps;
+      || this._cache.props.rowProps !== this.props.rowProps
+      || this._cache.props.scrollsHorizontally !== this.props.scrollsHorizontally;
   }
 
   _getContentComponentWithShallowCaching() {
@@ -80,9 +82,7 @@ export default class LightweightRow extends React.Component {
   }
 
   _shouldWrapComponent() {
-    return this.props.horizontalTransform !== undefined
-      || this.props.isHeader
-      || this.props.passthroughOffsets;
+    return this.props.scrollsHorizontally && !this.props.passthroughOffsets;
   }
 
   render() {
@@ -129,11 +129,11 @@ LightweightRow.propTypes = {
   contentComponent: customTypes.renderableComponent,
   horizontalTransform: types.number,
   isFastScrolling: types.bool,
-  isHeader: types.bool,
   isScrolling: types.bool,
   onClick: types.func,
   passthroughOffsets: types.bool,
   rowHeight: types.number.isRequired,
   rowProps: types.object,
+  scrollsHorizontally: types.bool.isRequired,
   width: types.number.isRequired
 };

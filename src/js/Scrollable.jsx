@@ -30,7 +30,8 @@ export default class Scrollable extends React.Component {
       '_getBottomGutterHeight',
       '_getContentWidth',
       '_getDimensions',
-      '_getThrottledAnimationFrameFn',
+      '_getThrottledHorizontalAnimationFrameFn',
+      '_getThrottledVerticalAnimationFrameFn',
       '_getTopGutterHeight',
       '_getWeightedWidth',
       '_onHorizontalScroll',
@@ -50,7 +51,7 @@ export default class Scrollable extends React.Component {
       'scrollToHeader',
       'toggleSection'
     ].forEach(method => { this[method] = this[method].bind(this); });
-    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_120, { trailing: true });
+    this._debouncedStartHorizontalScroll = _.debounce(this._startHorizontalScroll, 100);
     this._endScroll = _.debounce(() => this.setState({
       isFastScrolling: false,
       isScrolling: false,
@@ -61,6 +62,7 @@ export default class Scrollable extends React.Component {
       isScrolling: false,
       velocityQueue: [[0, 0]]
     }), 200, { trailing: true });
+    this._onThrottledMouseWheel = _.throttle(this._applyScrollChange, constants.ANIMATION_FPS_120, { trailing: true });
     const {
       headerType = constants.headerType.DEFAULT,
       height,
@@ -454,15 +456,11 @@ export default class Scrollable extends React.Component {
     return newState;
   }
 
-  _getThrottledAnimationFrameFn(scrollTo) {
+  _getThrottledHorizontalAnimationFrameFn(scrollTo) {
     const {
       props: {
-        height,
         horizontalScrollConfig: {
           onScroll: onHorizontalScroll = () => {}
-        } = {},
-        verticalScrollConfig: {
-          onScroll: onVerticalScroll = () => {}
         } = {}
       },
       state: {
@@ -470,18 +468,13 @@ export default class Scrollable extends React.Component {
         verticalTransform
       }
     } = this;
-    const delta = _.clone(scrollTo)
-      .sub(new Point(horizontalTransform, verticalTransform));
 
-    const initStateUpdate = {
+    const delta = new Point(scrollTo.x, 0)
+      .sub(new Point(horizontalTransform, 0));
+
+    this.setState({
       scrolling: true
-    };
-
-    if (Math.abs(delta.y) > height * constants.SCROLL_TO_FAST_SCROLL_FACTOR) {
-      initStateUpdate.isFastScrolling = true;
-    }
-
-    this.setState(initStateUpdate);
+    });
 
     return _.throttle(easer(easedElapsedTime => {
       const {
@@ -489,13 +482,10 @@ export default class Scrollable extends React.Component {
           horizontalScrollConfig
         },
         state: {
-          contentHeight,
-          partitions,
           scrollingToPosition: latestScrollingToPosition,
           shouldRender
         },
-        _horizontalScrollbar,
-        _verticalScrollbar
+        _horizontalScrollbar
       } = this;
       if (!_.isEqual(scrollTo, latestScrollingToPosition)) {
         return;
@@ -512,13 +502,6 @@ export default class Scrollable extends React.Component {
         isScrolling: true
       };
 
-      // vertical
-      if (shouldRender.verticalScrollbar) {
-        const maxHeight = getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
-        _.assign(scrollChanges, getVerticalScrollValues(newTransform.y, maxHeight, partitions));
-      }
-
-      // horizontal scrolling
       if (withHorizontalScrolling) {
         scrollChanges.horizontalTransform = _.clamp(
           newTransform.x,
@@ -528,18 +511,79 @@ export default class Scrollable extends React.Component {
       }
 
       this.setState(scrollChanges, () => {
-        if (shouldRender.verticalScrollbar) {
-          if (_verticalScrollbar.scrollTop !== scrollChanges.verticalTransform) {
-            onVerticalScroll(scrollChanges.verticalTransform);
-          }
-          _verticalScrollbar.scrollTop = scrollChanges.verticalTransform;
-        }
-
         if (withHorizontalScrolling) {
           if (_horizontalScrollbar.scrollLeft !== scrollChanges.horizontalTransform) {
             onHorizontalScroll(scrollChanges.horizontalTransform);
           }
           _horizontalScrollbar.scrollLeft = scrollChanges.horizontalTransform;
+        }
+
+        this._endScroll();
+      });
+    }), constants.ANIMATION_FPS_120, { leading: true });
+  }
+
+  _getThrottledVerticalAnimationFrameFn(scrollTo) {
+    const {
+      props: {
+        height,
+        verticalScrollConfig: {
+          onScroll: onVerticalScroll = () => {}
+        } = {}
+      },
+      state: {
+        horizontalTransform,
+        verticalTransform
+      }
+    } = this;
+    const delta = new Point(0, scrollTo.y)
+      .sub(new Point(0, verticalTransform));
+
+    const initStateUpdate = {
+      scrolling: true
+    };
+
+    if (Math.abs(delta.y) > height * constants.SCROLL_TO_FAST_SCROLL_FACTOR) {
+      initStateUpdate.isFastScrolling = true;
+    }
+
+    this.setState(initStateUpdate);
+
+    return _.throttle(easer(easedElapsedTime => {
+      const {
+        state: {
+          contentHeight,
+          partitions,
+          scrollingToPosition: latestScrollingToPosition,
+          shouldRender
+        },
+        _verticalScrollbar
+      } = this;
+      if (!_.isEqual(scrollTo, latestScrollingToPosition)) {
+        return;
+      }
+
+      const elapsedTime = easedElapsedTime > 0.999 ? 1 : easedElapsedTime;
+      const deltaScrolled = new Point(delta.x, delta.y)
+        .scale(elapsedTime);
+      const newTransform = new Point(horizontalTransform, verticalTransform)
+        .add(deltaScrolled);
+
+      const scrollChanges = {
+        isScrolling: true
+      };
+
+      if (shouldRender.verticalScrollbar) {
+        const maxHeight = getMaxHeight(contentHeight, _verticalScrollbar.offsetHeight);
+        _.assign(scrollChanges, getVerticalScrollValues(newTransform.y, maxHeight, partitions));
+      }
+
+      this.setState(scrollChanges, () => {
+        if (shouldRender.verticalScrollbar) {
+          if (_verticalScrollbar.scrollTop !== scrollChanges.verticalTransform) {
+            onVerticalScroll(scrollChanges.verticalTransform);
+          }
+          _verticalScrollbar.scrollTop = scrollChanges.verticalTransform;
         }
 
         this._endScroll();
@@ -693,6 +737,7 @@ export default class Scrollable extends React.Component {
       props: {
         dynamicColumn = constants.columns.MIDDLE,
         guttersConfig,
+        horizontalScrollConfig,
         horizontalScrollConfig: {
           passthroughOffsets = false
         } = {},
@@ -753,12 +798,12 @@ export default class Scrollable extends React.Component {
                   contentComponent={contentComponent}
                   horizontalTransform={horizontalTransform}
                   isFastScrolling={isScrolling && isFastScrolling}
-                  isHeader={isHeader}
                   isScrolling={isScrolling}
                   key={key || innerIndex}
                   passthroughOffsets={passthroughOffsets}
                   rowHeight={height}
                   rowProps={rowProps}
+                  scrollsHorizontally={!!horizontalScrollConfig}
                   width={weightedWidth}
                 />
               )
@@ -773,13 +818,13 @@ export default class Scrollable extends React.Component {
                   horizontalTransform={horizontalTransform}
                   index={innerIndex}
                   isFastScrolling={isScrolling && isFastScrolling}
-                  isHeader={isHeader}
                   isScrolling={isScrolling}
                   key={key || innerIndex}
                   onStartResize={this._startResize}
                   passthroughOffsets={passthroughOffsets}
                   rowHeight={height}
                   rowProps={rowProps}
+                  scrollsHorizontally={!!horizontalScrollConfig}
                   width={weightedWidth}
                 />
               )
@@ -879,6 +924,7 @@ export default class Scrollable extends React.Component {
                   key={key || headerIndex}
                   rowHeight={rowHeight}
                   rowProps={rowProps}
+                  scrollsHorizontally={false}
                   width={weightedWidth}
                 />
               )
@@ -896,6 +942,7 @@ export default class Scrollable extends React.Component {
                   key={key || headerIndex}
                   rowHeight={rowHeight}
                   rowProps={rowProps}
+                  scrollsHorizontally={false}
                   width={weightedWidth}
                 />
               );
@@ -959,6 +1006,7 @@ export default class Scrollable extends React.Component {
                  key={key || headerIndex}
                  rowHeight={rowHeight}
                  rowProps={rowProps}
+                 scrollsHorizontally={false}
                  width={weightedWidth}
                />
              )
@@ -976,6 +1024,7 @@ export default class Scrollable extends React.Component {
                 key={key || headerIndex}
                 rowHeight={rowHeight}
                 rowProps={rowProps}
+                scrollsHorizontally={false}
                 width={weightedWidth}
               />
             );
@@ -1014,6 +1063,7 @@ export default class Scrollable extends React.Component {
             key={key || headerRowIndex}
             rowHeight={rowHeight}
             rowProps={rowProps}
+            scrollsHorizontally={false}
             width={weightedWidth}
           />
         )
@@ -1031,6 +1081,7 @@ export default class Scrollable extends React.Component {
             key={key || headerRowIndex}
             rowHeight={rowHeight}
             rowProps={rowProps}
+            scrollsHorizontally={false}
             width={weightedWidth}
           />
         );
@@ -1228,6 +1279,22 @@ export default class Scrollable extends React.Component {
     };
   }
 
+  _startHorizontalScroll(scrollTo) {
+    const {
+      animation: oldAnimation
+    } = this.state;
+
+    const animation = new AnimationTimer()
+      .on('tick', this._getThrottledHorizontalAnimationFrameFn(scrollTo))
+      .play();
+    this.setState({ animation }, () => {
+      if (oldAnimation) {
+        oldAnimation.stop();
+      }
+      animation.play();
+    });
+  }
+
   _startResize(side) {
     return ({ clientX }) => {
       document.addEventListener('mouseup', this._stopResize, { capture: true });
@@ -1349,29 +1416,47 @@ export default class Scrollable extends React.Component {
     const {
       props: {
         onRegisteredScrollTo = () => {}
-      },
-      state: {
+      }, state: {
+        animation,
         horizontalTransform,
         verticalTransform
       }
     } = this;
-
-    let { animation } = this.state;
-    if (animation) {
-      animation.stop();
-    }
 
     if (horizontalTransform === x && verticalTransform === y) {
       return;
     }
 
     const scrollingToPosition = new Point(x, y);
+    const stateTransition = {
+      scrollingToPosition
+    };
 
-    animation = new AnimationTimer()
-      .on('tick', this._getThrottledAnimationFrameFn(scrollingToPosition))
-      .play();
+    if (horizontalTransform === x && verticalTransform !== y) {
+      stateTransition.animation = new AnimationTimer()
+        .on('tick', this._getThrottledVerticalAnimationFrameFn(scrollingToPosition));
+    } else if (horizontalTransform !== x && verticalTransform === y) {
+      this._debouncedStartHorizontalScroll(scrollingToPosition);
+    } else {
+      stateTransition.animation = new AnimationTimer()
+        .on('tick', this._getThrottledVerticalAnimationFrameFn(scrollingToPosition))
+        .on('stop', () => {
+          if (!_.isEqual(this.state.scrollingToPosition, scrollingToPosition)) {
+            return;
+          }
 
-    this.setState({ animation, scrollingToPosition });
+          this._debouncedStartHorizontalScroll(scrollingToPosition);
+        });
+    }
+
+    this.setState(stateTransition, () => {
+      if (animation) {
+        animation.stop();
+      }
+      if (stateTransition.animation) {
+        stateTransition.animation.play();
+      }
+    });
     onRegisteredScrollTo();
   }
 

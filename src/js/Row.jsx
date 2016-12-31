@@ -94,12 +94,12 @@ export default class Row extends React.Component {
       horizontalTransform,
       index,
       isFastScrolling = false,
-      isHeader,
       isScrolling = false,
       onClick,
       passthroughOffsets,
       rowHeight,
       rowProps = {},
+      scrollsHorizontally = false,
       width
     } = this.props;
     const rowStyle = {
@@ -154,7 +154,7 @@ export default class Row extends React.Component {
       : null;
 
     let contentComponent;
-    if (horizontalTransform !== undefined && !isHeader) {
+    if (scrollsHorizontally) {
       contentComponent = passthroughOffsets
         ? (
           <ContentComponent
@@ -167,7 +167,7 @@ export default class Row extends React.Component {
         )
         : (
             <HorizontalWrapper key='content' offset={horizontalTransform || 0}>
-              <ContentComponent isFastScrolling={isFastScrolling} isScrolling={isScrolling} {...rowProps} />
+              <ContentComponent isFastScrolling={isFastScrolling} isScrolling={isScrolling} offset={0} {...rowProps} />
             </HorizontalWrapper>
           );
     } else {
@@ -201,12 +201,12 @@ Row.propTypes = {
   horizontalTransform: types.number,
   index: types.number.isRequired,
   isFastScrolling: types.bool,
-  isHeader: types.bool,
   isScrolling: types.bool,
   onClick: types.func,
   onStartResize: types.func,
   passthroughOffsets: types.bool,
   rowHeight: types.number.isRequired,
   rowProps: types.object,
+  scrollsHorizontally: types.bool.isRequired,
   width: types.number.isRequired
 };
