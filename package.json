@@ -10,17 +10,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/implausible/rickscroll.git"
+    "url": "git+https://github.com/Axosoft/rickscroll.git"
   },
   "files": [
     "lib"
   ],
-  "author": "Tyler Wanek",
+  "author": "Axosoft, LLC",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/implausible/rickscroll/issues"
+    "url": "https://github.com/Axosoft/rickscroll/issues"
   },
-  "homepage": "https://github.com/implausible/rickscroll",
+  "homepage": "https://github.com/Axosoft/rickscroll",
   "dependencies": {
     "animation-timer": "^1.0.12",
     "classnames": "^2.2.5",
