@@ -1,4 +1,6 @@
 # Rickscroll
+**This package is deprecated, please use [https://www.npmjs.com/package/react-window](react-window) or [https://www.npmjs.com/package/react-virtualized](react-virtualized).**
+
 A high performance scrolling utility for React. Featured in [GitKraken](http://www.gitkraken.com/)
 
 Basic Usage
